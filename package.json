@@ -1,0 +1,11 @@
+{
+  "name": "resapi-postgres",
+  "version": "1.0.0",
+  "description": "Postgres adapter for resapi",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha --recursive test/unit"
+  },
+  "author": "Out There Business Solutions",
+  "license": "UNLICENSED"
+}
