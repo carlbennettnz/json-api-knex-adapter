@@ -70,13 +70,9 @@ module.exports = class PostgresAdapter {
       handleDatabaseError(err);
     }
 
-    let primary;
-
-    if (!idOrIds || Array.isArray(idOrIds)) {
-      primary = recordsToCollection(records, type, this.models);
-    } else {
-      primary = recordToResource(records[0], type, this.models);
-    }
+    const primary = !idOrIds || Array.isArray(idOrIds)
+      ? recordsToCollection(records, type, this.models)
+      : recordToResource(records[0], type, this.models);
 
     const included = recordsToCollection([]);
 
