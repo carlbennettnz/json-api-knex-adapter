@@ -5,7 +5,8 @@ const realKnex = require('knex')({ client: 'pg' });
 const {
   Collection,
   Resource,
-  Linkage
+  Linkage,
+  Error: APIError
 } = require('resapi').types;
 
 const models = {
@@ -156,17 +157,19 @@ describe('#find', function() {
     expect(included.resources).to.have.lengthOf(0);
   });
 
-  it(`ignores sorts of attrs that aren't in the model`, async function() {
+  it(`throws on sorts of attrs that aren't in the model`, async function() {
     td.when(knex.from('post')).thenResolve(POSTS);
 
-    const [ primary, included ] = await adapter.find('posts', null, null, [ 'password' ], null, null);
+    try {
+      await adapter.find('posts', null, null, [ 'password' ], null, null);
+    } catch (err) {
+      expect(err).to.have.lengthOf(1);
+      expect(err[0]).to.be.an.instanceOf(APIError);
+      expect(err[0].detail).to.include(`'password' does not exist`);
+      return;
+    }
 
-    expect(primary.resources).to.have.lengthOf(2);
-
-    expect(primary.resources[0].id).to.equal('1');
-    expect(primary.resources[1].id).to.equal('2');
-
-    expect(included.resources).to.have.lengthOf(0);
+    throw new Error('Expected bad sort to cause promise rejection');
   });
 
   it('applies all sorts in order', async function() {

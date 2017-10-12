@@ -1,3 +1,5 @@
+const APIError = require('resapi').types.Error;
+
 module.exports.applySorts = function applySorts(query, sorts, model) {
   const sortObjs = sorts.map(s => ({
     // Replace `'id'` with the `idKey`
@@ -7,13 +9,21 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
     dir: /^-/.test(s) ? 'desc' : 'asc'
   }));
 
-  // Filter out sorts of key not in the model. Important for security as this prevents sorting by hidden, private
-  // attributes, potentially resulting in data leakage.
-  const validSorts = sortObjs.filter(({ attr }) => {
-    return attr === model.idKey || model.attrs.includes(attr);
+  // Catch sorts of keys not in the model. Important for security as this prevents sorting by hidden, private attributes, potentially
+  // resulting in data leakage.
+  const invalidSorts = sortObjs.filter(({ attr }) => {
+    return attr !== model.idKey
+      && !model.attrs.includes(attr)
+      && !model.relationships.map(r => r.attr).includes(attr);
   });
 
-  for (const sort of validSorts) {
+  if (invalidSorts.length) {
+    throw invalidSorts.map(({ attr }) =>
+      new APIError(400, null, 'Invalid sort', `The attribute '${attr}' does not exist as an attribute or relationship on this model.'`)
+    );
+  }
+
+  for (const sort of sortObjs) {
     query = query.orderBy(sort.attr, sort.dir);
   }
 
