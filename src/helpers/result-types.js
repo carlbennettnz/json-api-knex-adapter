@@ -22,11 +22,11 @@ function recordToResource(record, type, models) {
   models[type].relationships.forEach(rel => {
     relationships[rel.key] = new Linkage({
       type: rel.type,
-      id: record[rel.key]
+      id: String(record[rel.key])
     });
   });
 
-  return new Resource(type, record.id, attrs, relationships);
+  return new Resource(type, String(record.id), attrs, relationships);
 };
 
 module.exports.recordsToCollection = recordsToCollection;
