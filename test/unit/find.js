@@ -27,7 +27,7 @@ const POSTS = [
 
 const adapter = new PostgresAdapter(models, knex);
 
-describe('#find', function() {
+describe('find', function() {
   afterEach(td.reset);
 
   it('uses the correct basic structure', async function() {
