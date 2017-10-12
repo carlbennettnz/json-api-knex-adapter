@@ -9,6 +9,7 @@ function recordsToCollection(records, type, models) {
 };
 
 function recordToResource(record, type, models) {
+  const id = String(record[models[type].idKey]);
   const attrs = {};
   const relationships = {};
 
@@ -26,7 +27,7 @@ function recordToResource(record, type, models) {
     });
   });
 
-  return new Resource(type, String(record.id), attrs, relationships);
+  return new Resource(type, id, attrs, relationships);
 };
 
 module.exports.recordsToCollection = recordsToCollection;

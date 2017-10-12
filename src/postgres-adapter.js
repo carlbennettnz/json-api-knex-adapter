@@ -31,6 +31,7 @@ module.exports = class PostgresAdapter {
    *                                             or the key through which the resource was included.
    */
   async find(type, idOrIds, fields, sorts, filters, includePaths) {
+    const model = this.models[type];
     let query = this.knex.from(this.models[type].table);
 
     if (Array.isArray(idOrIds)) {
@@ -50,15 +51,7 @@ module.exports = class PostgresAdapter {
     }
 
     if (Array.isArray(sorts)) {
-      // Filter out sorts of key not in the model. Important for security as this prevents sorting by hidden, private
-      // attributes, potentially resulting in data leakage.
-      const model = this.models[type];
-      const validSorts = sorts.filter(s => {
-        const key = s.replace(/^-/, '')
-        return key === model.idKey || model.attrs.includes(key);
-      });
-
-      query = applySorts(query, validSorts);
+      query = applySorts(query, sorts, model);
     }
 
     if (filters != null && typeof filters === 'object' && !Array.isArray(filters)) {

@@ -11,7 +11,7 @@ const {
 const models = {
   posts: {
     table: 'post',
-    idKey: 'id',
+    idKey: '_id',
     attrs: [ 'title' ],
     relationships: [ { type: 'authors', key: 'author' } ]
   }
@@ -20,8 +20,8 @@ const models = {
 const knex = td.object(realKnex());
 
 const POSTS = [
-  { id: 1, title: 'Post 1', author: 1 },
-  { id: 2, title: 'Post 2', author: 1 }
+  { _id: 1, title: 'Post 1', author: 1 },
+  { _id: 2, title: 'Post 2', author: 1 }
 ];
 
 const adapter = new PostgresAdapter(models, knex);
@@ -144,7 +144,7 @@ describe('#find', function() {
 
   it('sorts the results', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.orderBy('id', 'desc')).thenResolve([ POSTS[1], POSTS[0] ]);
+    td.when(knex.orderBy('_id', 'desc')).thenResolve([ POSTS[1], POSTS[0] ]);
 
     const [ primary, included ] = await adapter.find('posts', null, null, [ '-id' ], null, null);
 
@@ -172,7 +172,7 @@ describe('#find', function() {
   it('applies all sorts in order', async function() {
     td.when(knex.from('post')).thenReturn(knex);
     td.when(knex.orderBy('title', 'asc')).thenReturn(knex);
-    td.when(knex.orderBy('id', 'desc')).thenResolve(POSTS);
+    td.when(knex.orderBy('_id', 'desc')).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', null, null, [ 'title', '-id' ], null, null);
 
