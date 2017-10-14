@@ -100,4 +100,8 @@ describe('update', function() {
       expect(linkage.value.id).to.equal('1');
     });
   });
+
+  it.skip('errors on surplus fields');
+  it.skip('gives nice validation errors');
+  it.skip('is atomic');
 });

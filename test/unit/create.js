@@ -27,7 +27,7 @@ const adapter = new PostgresAdapter(models, knex);
 describe('create', function() {
   afterEach(td.reset);
 
-  it('single resource', async function() {
+  it('saves single resources', async function() {
     td.when(knex.transaction(td.matchers.isA(Function))).thenDo(cb => {
       const trx = td.object();
 
@@ -57,7 +57,7 @@ describe('create', function() {
     expect(linkage.value.id).to.equal('1');
   });
 
-  it('collection of resources of same type', async function() {
+  it('saves collections of resources of same type', async function() {
     td.when(knex.transaction(td.matchers.isA(Function))).thenDo(cb => {
       const trx = td.object();
 
@@ -91,4 +91,8 @@ describe('create', function() {
       expect(linkage.value.id).to.equal('1');
     });
   });
+
+  it.skip('errors on surplus fields');
+  it.skip('gives nice validation errors');
+  it.skip('is atomic');
 });
