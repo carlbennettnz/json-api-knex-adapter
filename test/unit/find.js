@@ -75,7 +75,7 @@ describe('find', function() {
 
   it('filters by id array', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.whereIn('id', ['1', '2'])).thenResolve(POSTS);
+    td.when(knex.whereIn('_id', ['1', '2'])).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', ['1', '2'], null, null, null, null);
 
