@@ -92,7 +92,7 @@ describe('find', function() {
 
   it('finds a specific id', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.where('id', '1')).thenResolve(POSTS.slice(0, 1));
+    td.when(knex.where('_id', '1')).thenResolve(POSTS.slice(0, 1));
 
     const [ primary, included ] = await adapter.find('posts', '1', null, null, null, null);
 
