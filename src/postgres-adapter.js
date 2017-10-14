@@ -43,9 +43,9 @@ module.exports = class PostgresAdapter {
     let query = this.knex.from(this.models[type].table);
 
     if (Array.isArray(idOrIds)) {
-      query = query.whereIn('id', idOrIds);
+      query = query.whereIn(model.idKey, idOrIds);
     } else if (typeof idOrIds === 'string') {
-      query = query.where('id', idOrIds);
+      query = query.where(model.idKey, idOrIds);
     }
 
     // ?fields[posts]=a,b,c
