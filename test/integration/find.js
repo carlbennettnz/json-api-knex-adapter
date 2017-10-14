@@ -1,12 +1,16 @@
-const app = require('../support/get-app-instance')();
-const { clear, load, close } = require('../support/database')(app.connection);
+const getApp = require('../support/get-app-instance');
+const dbHelpers = require('../support/database');
 const request = require('supertest');
 const { expect } = require('chai');
 
 describe('integrated find', function() {
-  beforeEach(clear);
-  beforeEach(load);
-  after(close);
+  let app, db;
+
+  before(() => app = getApp());
+  before(() => db = dbHelpers(app.connection));
+  beforeEach(() => db.clear());
+  beforeEach(() => db.load());
+  after(() => db.close());
 
   describe('collections', function() {
     it('uses types correctly', async function() {
