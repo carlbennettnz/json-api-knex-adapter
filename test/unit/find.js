@@ -65,8 +65,8 @@ describe('find', function() {
     expect(primary.resources).to.have.lengthOf(2);
 
     primary.resources.forEach((r, i) => {
-      expect(r.id).to.equal((i+1).toString());
-      expect(r.attrs.title).to.equal(`Post ${i+1}`);
+      expect(r.id).to.equal((i + 1).toString());
+      expect(r.attrs.title).to.equal(`Post ${i + 1}`);
       expect(r.relationships.author.value.id).to.equal('1');
     });
 
@@ -82,8 +82,8 @@ describe('find', function() {
     expect(primary.resources).to.have.lengthOf(2);
 
     primary.resources.forEach((r, i) => {
-      expect(r.id).to.equal((i+1).toString());
-      expect(r.attrs.title).to.equal(`Post ${i+1}`);
+      expect(r.id).to.equal((i + 1).toString());
+      expect(r.attrs.title).to.equal(`Post ${i + 1}`);
       expect(r.relationships.author.value.id).to.equal('1');
     });
 
@@ -108,12 +108,12 @@ describe('find', function() {
     td.when(knex.from('post')).thenReturn(knex);
     td.when(knex.select([ 'title', '_id' ])).thenResolve(POSTS);
 
-    const [ primary, included ] = await adapter.find('posts', null, { posts: [ 'title' ]  }, null, null, null);
+    const [ primary, included ] = await adapter.find('posts', null, { posts: [ 'title' ] }, null, null, null);
 
     expect(primary.resources).to.have.lengthOf(2);
 
     primary.resources.forEach((r, i) => {
-      expect(r.id).to.equal((i+1).toString());
+      expect(r.id).to.equal((i + 1).toString());
       expect(r.attrs.title).to.exist;
       expect(r.attrs.date).to.not.exist;
       expect(r.relationships.author).to.not.exist;
@@ -131,7 +131,7 @@ describe('find', function() {
     expect(primary.resources).to.have.lengthOf(2);
 
     primary.resources.forEach((r, i) => {
-      expect(r.id).to.equal((i+1).toString());
+      expect(r.id).to.equal((i + 1).toString());
       expect(r.attrs.title).to.not.exist;
       expect(r.attrs.date).to.not.exist;
       expect(r.relationships.author).to.exist;
@@ -150,8 +150,8 @@ describe('find', function() {
     expect(primary.resources).to.have.lengthOf(2);
 
     primary.resources.forEach((r, i) => {
-      expect(r.id).to.equal((i+1).toString());
-      expect(r.attrs.title).to.equal(`Post ${i+1}`);
+      expect(r.id).to.equal((i + 1).toString());
+      expect(r.attrs.title).to.equal(`Post ${i + 1}`);
       expect(r.relationships.author.value.id).to.equal('1');
     });
 

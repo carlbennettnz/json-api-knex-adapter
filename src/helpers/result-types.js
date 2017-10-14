@@ -6,7 +6,7 @@ const {
 
 function recordsToCollection(records, type, model, fields = []) {
   return new Collection(records.map(r => recordToResource(r, type, model, fields)));
-};
+}
 
 function recordToResource(record, type, model, fields = []) {
   const id = String(record[model.idKey]);
@@ -32,7 +32,7 @@ function recordToResource(record, type, model, fields = []) {
   });
 
   return new Resource(type, id, attrs, relationships);
-};
+}
 
 function resourceToRecord(resource, model) {
   const record = { ...resource.attrs };

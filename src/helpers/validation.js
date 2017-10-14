@@ -1,3 +1,5 @@
+const { Error: APIError } = require('resapi').types;
+
 function validateResources(resources, models) {
   const errors = [];
 
@@ -14,7 +16,7 @@ function validateResources(resources, models) {
 
     for (const rel in res.relationships) {
       if (!relationships.includes(rel)) {
-        const error = new APIError(400, undefined, 'Bad relationship', `The provided relationship ${attr} does not exist on the model.`);
+        const error = new APIError(400, undefined, 'Bad relationship', `The provided relationship ${rel} does not exist on the model.`);
         errors.push(error);
       }
     }

@@ -30,6 +30,6 @@ function database(knex) {
   }
 
   return { load, clear, close };
-};
+}
 
 module.exports = database;

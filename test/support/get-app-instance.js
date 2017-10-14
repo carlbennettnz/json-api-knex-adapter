@@ -28,16 +28,16 @@ const resourceTypes = {
   posts: {
     urlTemplates: {
       self: 'http://localhost:3000/posts/{id}',
-      relationship: 'http://localhost:3000/posts/{ownerId}/relationships/{path}',
+      relationship: 'http://localhost:3000/posts/{ownerId}/relationships/{path}'
     }
   },
 
   authors: {
     urlTemplates: {
       self: 'http://localhost:3000/authors/{id}',
-      relationship: 'http://localhost:3000/authors/{ownerId}/relationships/{path}',
+      relationship: 'http://localhost:3000/authors/{ownerId}/relationships/{path}'
     }
-  },
+  }
 };
 
 const dbConfig = {

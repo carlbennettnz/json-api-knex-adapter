@@ -2,12 +2,11 @@ const { expect } = require('chai');
 const PostgresAdapter = require('../../src/postgres-adapter');
 const td = require('testdouble');
 const realKnex = require('knex')({ client: 'pg' });
-const { recordsToCollection, recordToResource } = require('../../src/helpers/result-types');
+const { recordsToCollection } = require('../../src/helpers/result-types');
 const {
   Collection,
   Resource,
-  Linkage,
-  Error: APIError
+  Linkage
 } = require('resapi').types;
 
 const models = {
@@ -21,7 +20,11 @@ const models = {
 
 const knex = td.object({ transaction: realKnex.transaction });
 const POSTS = recordsToCollection([ { title: 'Post 1', author: 1 }, { title: 'Post 2', author: 1 } ], 'posts', models.posts);
-const POSTS_WITH_IDS = recordsToCollection([ { _id: 1, title: 'Post 1', author: 1 }, { _id: 2, title: 'Post 2', author: 1 } ], 'posts', models.posts);
+const POSTS_WITH_IDS = recordsToCollection(
+  [ { _id: 1, title: 'Post 1', author: 1 }, { _id: 2, title: 'Post 2', author: 1 } ],
+  'posts',
+  models.posts
+);
 const adapter = new PostgresAdapter(models, knex);
 
 describe('create', function() {
@@ -76,11 +79,11 @@ describe('create', function() {
     result.resources.forEach((r, i) => {
       expect(r).to.be.an.instanceOf(Resource);
       expect(r.id).to.a('string');
-      expect(r.id).to.equal((i+1).toString());
+      expect(r.id).to.equal((i + 1).toString());
 
       expect(Object.keys(r.attrs)).to.have.lengthOf(1);
       expect(r.attrs.title).to.be.a('string');
-      expect(r.attrs.title).to.equal(`Post ${i+1}`);
+      expect(r.attrs.title).to.equal(`Post ${i + 1}`);
 
       expect(Object.keys(r.relationships)).to.have.lengthOf(1);
 

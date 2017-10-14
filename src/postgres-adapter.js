@@ -7,7 +7,6 @@ const { recordsToCollection, recordToResource, resourceToRecord } = require('./h
 const { validateResources } = require('./helpers/validation');
 
 const {
-  Error: APIError,
   Collection,
   Resource
 } = require('resapi').types;
@@ -58,7 +57,7 @@ module.exports = class PostgresAdapter {
 
       query = query.select(f);
     } else {
-      fields = { [type]: [] }
+      fields = { [type]: [] };
     }
 
     if (Array.isArray(sorts)) {
@@ -78,7 +77,7 @@ module.exports = class PostgresAdapter {
     try {
       records = await query;
     } catch (err) {
-      handleDatabaseError(err);
+      handleQueryError(err);
     }
 
     const primary = !idOrIds || Array.isArray(idOrIds)
@@ -94,8 +93,9 @@ module.exports = class PostgresAdapter {
    * Returns a Promise that fulfills with the created Resource. The Promise may also reject with an error if creation failed or was
    * unsupported.
    *
-   * @param {String}              parentType           The supertype of the resources. Resources may be this or descendents of this.
-   * @param {Resource|Collection} resourceOrCollection The resource or collection of resources to create.
+   * @param   {String}              parentType           The supertype of the resources. Resources may be this or descendents of this.
+   * @param   {Resource|Collection} resourceOrCollection The resource or collection of resources to create.
+   * @returns {Promise}                                  A copy of the Collection or Resource with IDs added.
    */
   async create(parentType, resourceOrCollection) {
     return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
@@ -103,7 +103,7 @@ module.exports = class PostgresAdapter {
         .insert(rs)
         .into(model.table)
         .returning('id')
-        .then(ids => zipWith(ids, rs, (id, r) => new Resource(r.type, id.toString(), r.attrs, r.relationships)))
+        .then(ids => zipWith(ids, rs, (id, r) => new Resource(r.type, id.toString(), r.attrs, r.relationships)));
     });
   }
 
@@ -152,7 +152,7 @@ module.exports = class PostgresAdapter {
   static getModelName(type) {
     throw new Error('Not implemented');
   }
-}
+};
 
 async function mapResourceTypes(resourceOrCollection, knex, models, fn) {
   const resources = resourceOrCollection instanceof Collection

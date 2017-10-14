@@ -44,7 +44,7 @@ describe('integrated find', function() {
     it('applies sorts', async function() {
       const res = await request(app)
         .get('/posts')
-        .query({ sort: '-title,id'} )
+        .query({ sort: '-title,id' })
         .accept('application/vnd.api+json')
         .expect(200);
 
@@ -108,7 +108,7 @@ describe('integrated find', function() {
     it('ignores sorts', async function() {
       const res = await request(app)
         .get('/posts/1')
-        .query({ sort: '-title,id'} )
+        .query({ sort: '-title,id' })
         .accept('application/vnd.api+json')
         .expect(200);
 
