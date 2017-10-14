@@ -98,36 +98,18 @@ module.exports = class PostgresAdapter {
    * @param {Resource|Collection} resourceOrCollection The resource or collection of resources to create.
    */
   async create(parentType, resourceOrCollection) {
-    const resources = resourceOrCollection instanceof Collection
-      ? resourceOrCollection.resources
-      : [ resourceOrCollection ];
-
-    validateResources(resources, this.models);
-
-    const resourcesByType = groupBy(resources, r => r.type);
-
-    const results = await this.knex.transaction(trx => {
-      const promises = Object.keys(resourcesByType).map(type => {
-        const rs = resourcesByType[type];
-        const model = this.models[type]; // TODO: catch bad type
-
-        return trx
-          .insert(rs)
-          .into(model.table)
-          .returning('id')
-          .then(ids => zipWith(ids, rs, (id, r) => new Resource(r.type, id.toString(), r.attrs, r.relationships)))
-      });
-
-      return Promise.all(promises);
+    return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
+      return trx
+        .insert(rs)
+        .into(model.table)
+        .returning('id')
+        .then(ids => zipWith(ids, rs, (id, r) => new Resource(r.type, id.toString(), r.attrs, r.relationships)))
     });
-
-    return resourceOrCollection instanceof Collection
-      ? new Collection(results)
-      : results[0];
   }
 
-  update(parentType, resourceOrCollection) {
-    throw new Error('Not implemented');
+      });
+
+    });
   }
 
   delete(parentType, idsOrIds) {
@@ -157,4 +139,23 @@ module.exports = class PostgresAdapter {
   static getModelName(type) {
     throw new Error('Not implemented');
   }
+}
+
+async function mapResourceTypes(resourceOrCollection, knex, models, fn) {
+  const resources = resourceOrCollection instanceof Collection
+    ? resourceOrCollection.resources
+    : [ resourceOrCollection ];
+
+  validateResources(resources, models);
+
+  const byType = groupBy(resources, r => r.type);
+
+  const results = await knex.transaction(trx => {
+    const promises = Object.keys(byType).map(type => fn(trx, type, models[type], byType[type]));
+    return Promise.all(promises).then(rs => [].concat(...rs));
+  });
+
+  return resourceOrCollection instanceof Collection
+    ? new Collection(results)
+    : results[0];
 }
