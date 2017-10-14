@@ -49,8 +49,16 @@ module.exports = class PostgresAdapter {
     }
 
     // ?fields[posts]=a,b,c
-    if (fields != null && fields[type]) {
-      query = query.select(fields[type]);
+    if (fields != null && Array.isArray(fields[type])) {
+      const f = [ ...fields[type] ];
+
+      if (!f.includes(model.idKey)) {
+        f.push(model.idKey);
+      }
+
+      query = query.select(f);
+    } else {
+      fields = { [type]: [] }
     }
 
     if (Array.isArray(sorts)) {
@@ -74,10 +82,10 @@ module.exports = class PostgresAdapter {
     }
 
     const primary = !idOrIds || Array.isArray(idOrIds)
-      ? recordsToCollection(records, type, this.models)
-      : recordToResource(records[0], type, this.models);
+      ? recordsToCollection(records, type, this.models, fields[type])
+      : recordToResource(records[0], type, this.models, fields[type]);
 
-    const included = recordsToCollection([]);
+    const included = new Collection([]);
 
     return [ primary, included ];
   }

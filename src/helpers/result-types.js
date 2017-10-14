@@ -4,11 +4,11 @@ const {
   Linkage
 } = require('resapi').types;
 
-function recordsToCollection(records, type, models) {
-  return new Collection(records.map(r => recordToResource(r, type, models)));
+function recordsToCollection(records, type, models, fields) {
+  return new Collection(records.map(r => recordToResource(r, type, models, fields)));
 };
 
-function recordToResource(record, type, models) {
+function recordToResource(record, type, models, fields) {
   const id = String(record[models[type].idKey]);
   const attrs = {};
   const relationships = {};
@@ -21,10 +21,17 @@ function recordToResource(record, type, models) {
 
   // TODO: One-to-many relationships, probably supported via a linking table
   models[type].relationships.forEach(rel => {
-    relationships[rel.key] = new Linkage({
-      type: rel.type,
-      id: String(record[rel.key])
-    });
+    if (fields && fields.length > 0 && !fields.includes(rel.key)) {
+      return;
+    }
+
+    const linkage = { type: rel.type };
+
+    if (record[rel.key] != null) {
+      linkage.id = String(record[rel.key]);
+    }
+
+    relationships[rel.key] = new Linkage(linkage);
   });
 
   return new Resource(type, id, attrs, relationships);

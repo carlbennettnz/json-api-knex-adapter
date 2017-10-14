@@ -106,16 +106,36 @@ describe('find', function() {
 
   it('returns a sparse fieldset on the primary resource', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.select([ 'title' ])).thenResolve(POSTS);
+    td.when(knex.select([ 'title', '_id' ])).thenResolve(POSTS);
 
-    const [ primary, included ] = await adapter.find('posts', null, [ 'title' ], null, null, null);
+    const [ primary, included ] = await adapter.find('posts', null, { posts: [ 'title' ]  }, null, null, null);
 
     expect(primary.resources).to.have.lengthOf(2);
 
     primary.resources.forEach((r, i) => {
       expect(r.id).to.equal((i+1).toString());
-      expect(r.attrs.title).to.equal(`Post ${i+1}`);
-      expect(primary.relationships).to.not.exist;
+      expect(r.attrs.title).to.exist;
+      expect(r.attrs.date).to.not.exist;
+      expect(r.relationships.author).to.not.exist;
+    });
+
+    expect(included.resources).to.have.lengthOf(0);
+  });
+
+  it(`returns a sparse fieldset on the primary resource's relationships`, async function() {
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select([ 'author', '_id' ])).thenResolve(POSTS.map(p => ({ _id: p._id, author: p.author })));
+
+    const [ primary, included ] = await adapter.find('posts', null, { posts: [ 'author' ] }, null, null, null);
+
+    expect(primary.resources).to.have.lengthOf(2);
+
+    primary.resources.forEach((r, i) => {
+      expect(r.id).to.equal((i+1).toString());
+      expect(r.attrs.title).to.not.exist;
+      expect(r.attrs.date).to.not.exist;
+      expect(r.relationships.author).to.exist;
+      expect(r.relationships.author.value.id).to.exist;
     });
 
     expect(included.resources).to.have.lengthOf(0);
