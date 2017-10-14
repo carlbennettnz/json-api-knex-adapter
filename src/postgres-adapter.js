@@ -3,7 +3,7 @@ const groupBy = require('lodash.groupby');
 const zipWith = require('lodash.zipwith');
 const { applySorts, applyFilters } = require('./helpers/query');
 const { handleQueryError } = require('./helpers/errors');
-const { recordsToCollection, recordToResource } = require('./helpers/result-types');
+const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
 const { validateResources } = require('./helpers/validation');
 
 const {
@@ -82,8 +82,8 @@ module.exports = class PostgresAdapter {
     }
 
     const primary = !idOrIds || Array.isArray(idOrIds)
-      ? recordsToCollection(records, type, this.models, fields[type])
-      : recordToResource(records[0], type, this.models, fields[type]);
+      ? recordsToCollection(records, type, model, fields[type])
+      : recordToResource(records[0], type, model, fields[type]);
 
     const included = new Collection([]);
 

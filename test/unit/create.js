@@ -20,8 +20,8 @@ const models = {
 };
 
 const knex = td.object({ transaction: realKnex.transaction });
-const POSTS = recordsToCollection([ { title: 'Post 1', author: 1 }, { title: 'Post 2', author: 1 } ], 'posts', models);
-const POSTS_WITH_IDS = recordsToCollection([ { _id: 1, title: 'Post 1', author: 1 }, { _id: 2, title: 'Post 2', author: 1 } ], 'posts', models);
+const POSTS = recordsToCollection([ { title: 'Post 1', author: 1 }, { title: 'Post 2', author: 1 } ], 'posts', models.posts);
+const POSTS_WITH_IDS = recordsToCollection([ { _id: 1, title: 'Post 1', author: 1 }, { _id: 2, title: 'Post 2', author: 1 } ], 'posts', models.posts);
 const adapter = new PostgresAdapter(models, knex);
 
 describe('create', function() {
