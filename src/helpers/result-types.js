@@ -34,5 +34,16 @@ function recordToResource(record, type, model, fields = []) {
   return new Resource(type, id, attrs, relationships);
 };
 
+function resourceToRecord(resource, model) {
+  const record = { ...resource.attrs };
+
+  for (const rel in resource.relationships) {
+    record[rel] = resource.relationships[rel].value.id;
+  }
+
+  return record;
+}
+
 module.exports.recordsToCollection = recordsToCollection;
 module.exports.recordToResource = recordToResource;
+module.exports.resourceToRecord = resourceToRecord;
