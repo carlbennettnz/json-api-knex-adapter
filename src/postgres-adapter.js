@@ -1,8 +1,16 @@
 const realKnex = require('knex');
-const APIError = require('resapi').types.Error;
+const groupBy = require('lodash.groupby');
+const zipWith = require('lodash.zipwith');
 const { applySorts, applyFilters } = require('./helpers/query');
 const { handleQueryError } = require('./helpers/errors');
 const { recordsToCollection, recordToResource } = require('./helpers/result-types');
+const { validateResources } = require('./helpers/validation');
+
+const {
+  Error: APIError,
+  Collection,
+  Resource
+} = require('resapi').types;
 
 module.exports = class PostgresAdapter {
   constructor(models, knex = realKnex) {
@@ -79,8 +87,40 @@ module.exports = class PostgresAdapter {
     return [ primary, included ];
   }
 
-  create(parentType, resourceOrCollection) {
-    throw new Error('Not implemented');
+  /**
+   * Returns a Promise that fulfills with the created Resource. The Promise may also reject with an error if creation failed or was
+   * unsupported.
+   *
+   * @param {String}              parentType           The supertype of the resources. Resources may be this or descendents of this.
+   * @param {Resource|Collection} resourceOrCollection The resource or collection of resources to create.
+   */
+  async create(parentType, resourceOrCollection) {
+    const resources = resourceOrCollection instanceof Collection
+      ? resourceOrCollection.resources
+      : [ resourceOrCollection ];
+
+    validateResources(resources, this.models);
+
+    const resourcesByType = groupBy(resources, r => r.type);
+
+    const results = await this.knex.transaction(trx => {
+      const promises = Object.keys(resourcesByType).map(type => {
+        const rs = resourcesByType[type];
+        const model = this.models[type]; // TODO: catch bad type
+
+        return trx
+          .insert(rs)
+          .into(model.table)
+          .returning('id')
+          .then(ids => zipWith(ids, rs, (id, r) => new Resource(r.type, id.toString(), r.attrs, r.relationships)))
+      });
+
+      return Promise.all(promises);
+    });
+
+    return resourceOrCollection instanceof Collection
+      ? new Collection(results)
+      : results[0];
   }
 
   update(parentType, resourceOrCollection) {
