@@ -10,6 +10,8 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "chai": "^4.1.2",
+    "eslint": "^4.9.0",
+    "eslint-config-otbs": "outtherenz/eslint-config-otbs",
     "express": "^4.16.2",
     "mocha": "^4.0.1"
   },
