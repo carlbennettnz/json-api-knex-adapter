@@ -6,7 +6,7 @@ const { expect } = require('chai');
 describe('integrated find', function() {
   beforeEach(clear);
   beforeEach(load);
-  after(close)
+  after(close);
 
   describe('collections', function() {
     it('uses types correctly', async function() {
@@ -62,6 +62,63 @@ describe('integrated find', function() {
       expect(res.body.data).to.have.lengthOf(1);
 
       expect(res.body.data[0].attributes.title).to.equal('Post 1');
+    });
+
+    it.skip('populates relationships with include', async function() {
+      const res = await request(app)
+        .get('/posts')
+        .query('include', 'author')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(4);
+      expect(res.body.included).to.have.lengthOf(1);
+
+      expect(res.body.included[0].attributes.id).to.equal('1');
+    });
+  });
+
+  describe('single resources', function() {
+    it('uses types correctly', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data.id).to.equal('1');
+      expect(res.body.data.type).to.equal('posts');
+    });
+
+    it('filters fields', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .query({ fields: { posts: 'title' } })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data.id).to.equal('1');
+      expect(res.body.data.attributes.title).to.exist;
+      expect(res.body.data.attributes.date).to.not.exist;
+    });
+
+    it('ignores sorts', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .query({ sort: '-title,id'} )
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data.id).to.equal('1');
+    });
+
+    it('ignores filters', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .query('filter[title]', 'xyz')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data.id).to.equal('1');
     });
 
     it.skip('populates relationships with include', async function() {
