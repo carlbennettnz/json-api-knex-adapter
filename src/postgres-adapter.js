@@ -107,8 +107,21 @@ module.exports = class PostgresAdapter {
     });
   }
 
+  async update(parentType, resourceOrCollection) {
+    return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
+      const promises = rs.map(r => {
+        const record = resourceToRecord(r, model);
+
+        // TODO: Batch these updates somehow for efficiency
+        return trx(model.table)
+          .where(model.idKey, '=', r.id)
+          .update(record)
+          .returning('*');
       });
 
+      return Promise.all(promises).then(
+        records => records.map(record => recordToResource(record, type, model))
+      );
     });
   }
 
