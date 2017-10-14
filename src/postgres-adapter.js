@@ -48,12 +48,7 @@ module.exports = class PostgresAdapter {
       query = query.where('id', idOrIds);
     }
 
-    // ?fields=a,b,c
-    if (Array.isArray(fields) && fields.length > 0) {
-      query = query.select(fields);
-    }
-
-    // ?fields[post]=a,b,c
+    // ?fields[posts]=a,b,c
     if (fields != null && fields[type]) {
       query = query.select(fields[type]);
     }
