@@ -18,7 +18,7 @@ const models = {
   }
 };
 
-const knex = td.object(realKnex());
+const knex = td.object(realKnex('post'));
 
 const POSTS = [
   { _id: 1, title: 'Post 1', author: 1 },
