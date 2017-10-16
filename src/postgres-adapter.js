@@ -99,11 +99,13 @@ module.exports = class PostgresAdapter {
    */
   async create(parentType, resourceOrCollection) {
     return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
+      const records = rs.map(r => resourceToRecord(r, model));
+
       return trx
-        .insert(rs)
+        .insert(records)
         .into(model.table)
-        .returning('id')
-        .then(ids => zipWith(ids, rs, (id, r) => new Resource(r.type, id.toString(), r.attrs, r.relationships)));
+        .returning('*')
+        .then(inserted => inserted.map(r => recordToResource(r, type, model)));
     });
   }
 
@@ -142,11 +144,12 @@ module.exports = class PostgresAdapter {
   }
 
   getTypesAllowedInCollection(parentType) {
-    throw new Error('Not implemented');
+    // TODO: Support extended tables
+    return [ parentType ];
   }
 
   getRelationshipNames(type) {
-    throw new Error('Not implemented');
+    return this.models[type].relationships.map(r => r.key);
   }
 
   static getModelName(type) {

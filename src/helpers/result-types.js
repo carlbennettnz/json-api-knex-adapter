@@ -38,7 +38,7 @@ function resourceToRecord(resource, model) {
   const record = { ...resource.attrs };
 
   for (const rel in resource.relationships) {
-    record[rel] = resource.relationships[rel].value.id;
+    record[rel] = resource.relationships[rel].linkage.value.id;
   }
 
   return record;
