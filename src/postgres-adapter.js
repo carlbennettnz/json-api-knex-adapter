@@ -109,6 +109,14 @@ module.exports = class PostgresAdapter {
     });
   }
 
+  /**
+   * Returns a Promise that fulfills with the updated Resource. The Promise may also reject with an error if update failed or was
+   * unsupported.
+   *
+   * @param   {String}              parentType           The supertype of the resources. Resources may be this or descendents of this.
+   * @param   {Resource|Collection} resourceOrCollection The resource or collection of resources to create.
+   * @returns {Promise}                                  A copy of the Collection or Resource with updates applied.
+   */
   async update(parentType, resourceOrCollection) {
     return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
       const promises = rs.map(r => {
