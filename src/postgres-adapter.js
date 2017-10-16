@@ -130,7 +130,7 @@ module.exports = class PostgresAdapter {
       });
 
       return Promise.all(promises).then(
-        records => records.map(record => recordToResource(record, type, model))
+        records => [].concat(...records).map(record => recordToResource(record, type, model))
       );
     });
   }
