@@ -20,9 +20,10 @@ function database(knex) {
   }
 
   async function clear() {
-    const fixtures = await fixturesPromise;
-    const wipes = fixtures.map(([ table ]) => knex.delete().from(table));
-    return Promise.all(wipes);
+    return Promise.all([
+      knex.raw(`truncate post restart identity`),
+      knex.raw(`truncate author restart identity cascade`)
+    ]);
   }
 
   async function close() {
