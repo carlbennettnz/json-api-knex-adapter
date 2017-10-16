@@ -1,7 +1,8 @@
 const {
   Collection,
   Resource,
-  Linkage
+  Linkage,
+  Relationship
 } = require('resapi').types;
 
 function recordsToCollection(records, type, model, fields = []) {
@@ -25,10 +26,12 @@ function recordToResource(record, type, model, fields = []) {
 
     if (!fieldAllowed || record[rel.key] == null) return;
 
-    relationships[rel.key] = new Linkage({
+    const linkage = new Linkage({
       type: rel.type,
       id: String(record[rel.key])
     });
+
+    relationships[rel.key] = new Relationship(linkage);
   });
 
   return new Resource(type, id, attrs, relationships);

@@ -6,6 +6,7 @@ const {
   Collection,
   Resource,
   Linkage,
+  Relationship,
   Error: APIError
 } = require('resapi').types;
 
@@ -47,10 +48,11 @@ describe('find', function() {
 
       expect(Object.keys(r.relationships)).to.have.lengthOf(1);
 
-      const linkage = r.relationships.author;
-      expect(linkage).to.be.instanceOf(Linkage);
-      expect(linkage.value.type).to.equal('authors');
-      expect(linkage.value.id).to.be.a('string');
+      const rel = r.relationships.author;
+      expect(rel).to.be.instanceOf(Relationship);
+      expect(rel.linkage).to.be.instanceOf(Linkage);
+      expect(rel.linkage.value.type).to.equal('authors');
+      expect(rel.linkage.value.id).to.be.a('string');
     });
 
     expect(included).to.be.instanceOf(Collection);
@@ -67,7 +69,7 @@ describe('find', function() {
     primary.resources.forEach((r, i) => {
       expect(r.id).to.equal((i + 1).toString());
       expect(r.attrs.title).to.equal(`Post ${i + 1}`);
-      expect(r.relationships.author.value.id).to.equal('1');
+      expect(r.relationships.author.linkage.value.id).to.equal('1');
     });
 
     expect(included.resources).to.have.lengthOf(0);
@@ -84,7 +86,7 @@ describe('find', function() {
     primary.resources.forEach((r, i) => {
       expect(r.id).to.equal((i + 1).toString());
       expect(r.attrs.title).to.equal(`Post ${i + 1}`);
-      expect(r.relationships.author.value.id).to.equal('1');
+      expect(r.relationships.author.linkage.value.id).to.equal('1');
     });
 
     expect(included.resources).to.have.lengthOf(0);
@@ -99,7 +101,7 @@ describe('find', function() {
     expect(primary).to.be.an.instanceOf(Resource);
     expect(primary.id).to.equal('1');
     expect(primary.attrs.title).to.equal(`Post 1`);
-    expect(primary.relationships.author.value.id).to.equal('1');
+    expect(primary.relationships.author.linkage.value.id).to.equal('1');
 
     expect(included.resources).to.have.lengthOf(0);
   });
@@ -135,7 +137,7 @@ describe('find', function() {
       expect(r.attrs.title).to.not.exist;
       expect(r.attrs.date).to.not.exist;
       expect(r.relationships.author).to.exist;
-      expect(r.relationships.author.value.id).to.exist;
+      expect(r.relationships.author.linkage.value.id).to.exist;
     });
 
     expect(included.resources).to.have.lengthOf(0);
@@ -152,7 +154,7 @@ describe('find', function() {
     primary.resources.forEach((r, i) => {
       expect(r.id).to.equal((i + 1).toString());
       expect(r.attrs.title).to.equal(`Post ${i + 1}`);
-      expect(r.relationships.author.value.id).to.equal('1');
+      expect(r.relationships.author.linkage.value.id).to.equal('1');
     });
 
     expect(included.resources).to.have.lengthOf(1);

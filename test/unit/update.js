@@ -6,7 +6,8 @@ const { recordsToCollection } = require('../../src/helpers/result-types');
 const {
   Collection,
   Resource,
-  Linkage
+  Linkage,
+  Relationship
 } = require('resapi').types;
 
 const models = {
@@ -54,11 +55,12 @@ describe('update', function() {
 
     expect(Object.keys(result.relationships)).to.have.lengthOf(1);
 
-    const linkage = result.relationships.author;
-    expect(linkage).to.be.instanceOf(Linkage);
-    expect(linkage.value.type).to.equal('authors');
-    expect(linkage.value.id).to.be.a('string');
-    expect(linkage.value.id).to.equal('1');
+    const rel = result.relationships.author;
+    expect(rel).to.be.instanceOf(Relationship);
+    expect(rel.linkage).to.be.instanceOf(Linkage);
+    expect(rel.linkage.value.type).to.equal('authors');
+    expect(rel.linkage.value.id).to.be.a('string');
+    expect(rel.linkage.value.id).to.equal('1');
   });
 
   it('collection of resources of same type', async function() {
@@ -95,11 +97,12 @@ describe('update', function() {
 
       expect(Object.keys(r.relationships)).to.have.lengthOf(1);
 
-      const linkage = r.relationships.author;
-      expect(linkage).to.be.instanceOf(Linkage);
-      expect(linkage.value.type).to.equal('authors');
-      expect(linkage.value.id).to.be.a('string');
-      expect(linkage.value.id).to.equal('1');
+      const rel = r.relationships.author;
+      expect(rel).to.be.instanceOf(Relationship);
+      expect(rel.linkage).to.be.instanceOf(Linkage);
+      expect(rel.linkage.value.type).to.equal('authors');
+      expect(rel.linkage.value.id).to.be.a('string');
+      expect(rel.linkage.value.id).to.equal('1');
     });
   });
 

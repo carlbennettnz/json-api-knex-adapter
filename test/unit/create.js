@@ -6,7 +6,8 @@ const { recordsToCollection } = require('../../src/helpers/result-types');
 const {
   Collection,
   Resource,
-  Linkage
+  Linkage,
+  Relationship
 } = require('resapi').types;
 
 const models = {
@@ -36,7 +37,7 @@ describe('create', function() {
 
       td.when(trx.insert(td.matchers.anything())).thenReturn(trx);
       td.when(trx.into('post')).thenReturn(trx);
-      td.when(trx.returning('id')).thenResolve([ 1 ]);
+      td.when(trx.returning('*')).thenResolve([ { _id: 5, title: 'Post 5', author: 1, date: new Date() } ]);
 
       return cb(trx).then(() => POSTS_WITH_IDS.resources.slice(0, 1));
     });
@@ -53,11 +54,12 @@ describe('create', function() {
 
     expect(Object.keys(result.relationships)).to.have.lengthOf(1);
 
-    const linkage = result.relationships.author;
-    expect(linkage).to.be.instanceOf(Linkage);
-    expect(linkage.value.type).to.equal('authors');
-    expect(linkage.value.id).to.be.a('string');
-    expect(linkage.value.id).to.equal('1');
+    const rel = result.relationships.author;
+    expect(rel).to.be.instanceOf(Relationship);
+    expect(rel.linkage).to.be.instanceOf(Linkage);
+    expect(rel.linkage.value.type).to.equal('authors');
+    expect(rel.linkage.value.id).to.be.a('string');
+    expect(rel.linkage.value.id).to.equal('1');
   });
 
   it('saves collections of resources of same type', async function() {
@@ -66,7 +68,10 @@ describe('create', function() {
 
       td.when(trx.insert(td.matchers.anything())).thenReturn(trx);
       td.when(trx.into('post')).thenReturn(trx);
-      td.when(trx.returning('id')).thenResolve([ 1, 2 ]);
+      td.when(trx.returning('*')).thenResolve([
+        { _id: 5, title: 'Post 5', author: 1, date: new Date() },
+        { _id: 6, title: 'Post 6', author: null, date: new Date() }
+      ]);
 
       return cb(trx).then(() => POSTS_WITH_IDS.resources);
     });
@@ -87,11 +92,12 @@ describe('create', function() {
 
       expect(Object.keys(r.relationships)).to.have.lengthOf(1);
 
-      const linkage = r.relationships.author;
-      expect(linkage).to.be.instanceOf(Linkage);
-      expect(linkage.value.type).to.equal('authors');
-      expect(linkage.value.id).to.be.a('string');
-      expect(linkage.value.id).to.equal('1');
+      const rel = r.relationships.author;
+      expect(rel).to.be.instanceOf(Relationship);
+      expect(rel.linkage).to.be.instanceOf(Linkage);
+      expect(rel.linkage.value.type).to.equal('authors');
+      expect(rel.linkage.value.id).to.be.a('string');
+      expect(rel.linkage.value.id).to.equal('1');
     });
   });
 
