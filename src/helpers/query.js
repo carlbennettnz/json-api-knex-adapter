@@ -38,8 +38,16 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
  * @return {Query}          Knex query with filters applied.
  */
 module.exports.applyFilters = function applyFilters(query, filters) {
+  if (typeof filters !== 'object') {
+    throw new APIError(400, undefined, 'Bad filter', 'Filters must be an object.');
+  }
+
   for (const key in filters) {
     let val = filters[key];
+
+    if (typeof key !== 'string' || key.startsWith('$')) {
+      throw new APIError(400, undefined, 'Bad filter', `Expected to find an attribute name, got ${key}. Logical operators are not supported.`)
+    }
 
     if (val === null || typeof val !== 'object') {
       val = { $eq: val };

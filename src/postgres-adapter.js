@@ -40,11 +40,12 @@ module.exports = class PostgresAdapter {
   async find(type, idOrIds, fields, sorts, filters, includePaths) {
     const model = this.models[type];
     let query = this.knex.from(this.models[type].table);
+    const singular = idOrIds && !Array.isArray(idOrIds);
 
-    if (Array.isArray(idOrIds)) {
-      query = query.whereIn(model.idKey, idOrIds);
-    } else if (typeof idOrIds === 'string') {
+    if (singular) {
       query = query.where(model.idKey, idOrIds);
+    } else if (idOrIds) {
+      query = query.whereIn(model.idKey, idOrIds);
     }
 
     // ?fields[posts]=a,b,c
@@ -64,7 +65,7 @@ module.exports = class PostgresAdapter {
       query = applySorts(query, sorts, model);
     }
 
-    if (filters != null && typeof filters === 'object' && !Array.isArray(filters)) {
+    if (!singular && filters != null) {
       query = applyFilters(query, filters);
     }
 
@@ -80,9 +81,9 @@ module.exports = class PostgresAdapter {
       handleQueryError(err);
     }
 
-    const primary = !idOrIds || Array.isArray(idOrIds)
-      ? recordsToCollection(records, type, model, fields[type])
-      : recordToResource(records[0], type, model, fields[type]);
+    const primary = singular
+      ? recordToResource(records[0], type, model, fields[type])
+      : recordsToCollection(records, type, model, fields[type]);
 
     const included = new Collection([]);
 

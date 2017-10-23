@@ -223,5 +223,47 @@ describe('find', function() {
     expect(included.resources).to.have.lengthOf(0);
   });
 
+  it('gives a nice error for non-object filters', async function() {
+    td.when(knex.from('post')).thenResolve(POSTS);
+
+    try {
+      await adapter.find('posts', null, null, null, 'abc', null);
+    } catch (err) {
+      expect(err.title).to.equal('Bad filter');
+      expect(err.detail).to.equal('Filters must be an object.');
+      return;
+    }
+
+    throw new Error('Expected bad filter to cause promise rejection');
+  });
+
+  it('gives a nice error for top-level operators', async function() {
+    td.when(knex.from('post')).thenResolve(POSTS);
+
+    try {
+      await adapter.find('posts', null, null, null, { $or: [ { title: 'Post 1' }, { title: 'Post 2' } ] }, null);
+    } catch (err) {
+      expect(err.title).to.equal('Bad filter');
+      expect(err.detail).to.equal('Expected to find an attribute name, got $or. Logical operators are not supported.');
+      return;
+    }
+
+    throw new Error('Expected bad filter to cause promise rejection');
+  });
+
+  it('gives a nice error for unknown operators', async function() {
+    td.when(knex.from('post')).thenResolve(POSTS);
+
+    try {
+      await adapter.find('posts', null, null, null, { title: { '<': 1 } }, null);
+    } catch (err) {
+      expect(err.title).to.equal('Bad filter');
+      expect(err.detail).to.equal('Unknown operator <.');
+      return;
+    }
+
+    throw new Error('Expected bad filter to cause promise rejection');
+  });
+
   it.skip('includes resources');
 });

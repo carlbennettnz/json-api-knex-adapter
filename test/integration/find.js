@@ -188,6 +188,29 @@ describe('integrated find', function() {
         expect(res.body.data[0].attributes.title).to.equal('Post 1');
         expect(res.body.data[1].attributes.title).to.equal('Post 2');
       });
+
+      // To match resapi-mongoose
+      it(`doesn't care if $in value isn't an array`, async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$in]': 'Post 1' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(1);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+      });
+
+      it('catches filter errors', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][$or][title]': 'Post 1' })
+          .query({ 'filter[simple][$or][title]': 'Post 2' })
+          .expect(400);
+
+        expect(res.body.errors).to.have.lengthOf(1);
+        expect(res.body.errors[0].title).to.equal('Bad filter');
+      });
     });
   });
 
@@ -227,7 +250,7 @@ describe('integrated find', function() {
     it('ignores filters', async function() {
       const res = await request(app)
         .get('/posts/1')
-        .query('filter[title]', 'xyz')
+        .query('filter[simple][title]', 'xyz')
         .accept('application/vnd.api+json')
         .expect(200);
 
