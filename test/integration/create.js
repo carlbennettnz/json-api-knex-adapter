@@ -17,7 +17,7 @@ const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
 } ];
 
 describe('integrated create', function() {
-  let app, db;
+  let app, knex, db;
 
   before(() => app = getApp());
   before(() => knex = app.connection);
@@ -109,7 +109,7 @@ describe('integrated create', function() {
     });
 
     it('is atomic', async function() {
-      const [ { count: pre } ] = await app.connection('post').count();
+      const [ { count: pre } ] = await knex('post').count();
 
       await request(app)
         .post('/posts')
@@ -117,7 +117,7 @@ describe('integrated create', function() {
         .send({ data: POSTS_WITH_BAD_AUTHOR })
         .expect(500);
 
-      const [ { count: post } ] = await app.connection('post').count();
+      const [ { count: post } ] = await knex('post').count();
 
       expect(pre).equals(post);
     });

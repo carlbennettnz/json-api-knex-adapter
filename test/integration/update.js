@@ -20,7 +20,7 @@ const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
 } ];
 
 describe('integrated update', function() {
-  let app, db;
+  let app, knex, db;
 
   before(() => app = getApp());
   before(() => knex = app.connection);
@@ -61,7 +61,7 @@ describe('integrated update', function() {
     });
 
     it('ignores surplus fields', async function() {
-      const res = await request(app)
+      await request(app)
         .patch('/posts/1')
         .type('application/vnd.api+json')
         .send({ data: { ...POSTS[0], abc: 123 } })
@@ -115,7 +115,7 @@ describe('integrated update', function() {
     });
 
     it('is atomic', async function() {
-      const pre = await app.connection('post');
+      const pre = await knex('post');
 
       await request(app)
         .patch('/posts')
@@ -123,7 +123,7 @@ describe('integrated update', function() {
         .send({ data: POSTS_WITH_BAD_AUTHOR })
         .expect(500);
 
-      const post = await app.connection('post');
+      const post = await knex('post');
 
       expect(pre).deep.equals(post);
     });

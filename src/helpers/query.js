@@ -46,7 +46,8 @@ module.exports.applyFilters = function applyFilters(query, filters) {
     let val = filters[key];
 
     if (typeof key !== 'string' || key.startsWith('$')) {
-      throw new APIError(400, undefined, 'Bad filter', `Expected to find an attribute name, got ${key}. Logical operators are not supported.`)
+      throw new APIError(400, undefined, 'Bad filter',
+        `Expected to find an attribute name, got ${key}. Logical operators are not supported.`);
     }
 
     if (val === null || typeof val !== 'object') {

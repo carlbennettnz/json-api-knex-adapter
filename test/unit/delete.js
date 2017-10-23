@@ -1,8 +1,6 @@
 const { expect } = require('chai');
 const PostgresAdapter = require('../../src/postgres-adapter');
 const td = require('testdouble');
-const realKnex = require('knex')({ client: 'pg' });
-const { recordsToCollection } = require('../../src/helpers/result-types');
 const {
   Error: APIError
 } = require('resapi').types;

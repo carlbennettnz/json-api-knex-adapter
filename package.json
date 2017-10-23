@@ -19,7 +19,6 @@
     "knex": "^0.13.0",
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
-    "lodash.zipwith": "^4.2.0",
     "pg": "^7.3.0",
     "supertest": "^3.0.0",
     "testdouble": "^3.2.6"

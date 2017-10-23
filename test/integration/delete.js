@@ -3,19 +3,8 @@ const dbHelpers = require('../support/database');
 const request = require('supertest');
 const { expect } = require('chai');
 
-const POSTS = [{
-  id: '1',
-  type: 'posts',
-  attributes: { title: 'New Title 1' },
-  relationships: { author: { data: null } }
-}, {
-  id: '2',
-  type: 'posts',
-  attributes: { title: 'New Title 2', date: new Date('2017-10-15') }
-}];
-
 describe('integrated delete', function() {
-  let app, db;
+  let app, knex, db;
 
   before(() => app = getApp());
   before(() => knex = app.connection);
