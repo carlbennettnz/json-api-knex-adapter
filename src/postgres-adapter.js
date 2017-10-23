@@ -8,7 +8,8 @@ const { validateResources } = require('./helpers/validation');
 
 const {
   Collection,
-  Resource
+  Resource,
+  Error: APIError
 } = require('resapi').types;
 
 module.exports = class PostgresAdapter {
@@ -136,8 +137,22 @@ module.exports = class PostgresAdapter {
     });
   }
 
-  delete(parentType, idsOrIds) {
-    throw new Error('Not implemented');
+  async delete(parentType, idOrIds) {
+    if (idOrIds == null) {
+      throw new APIError(400, undefined, 'You must specify some resources to delete');
+    }
+
+    const model = this.models[parentType];
+    const single = !Array.isArray(idOrIds);
+
+    const numDeleted = await this.knex
+      .from(model.table)
+      .whereIn(model.idKey, single ? [ idOrIds ] : idOrIds)
+      .delete();
+
+    if (single && numDeleted === 0) {
+      throw new APIError(404, undefined, 'No matching resource found');
+    }
   }
 
   addToRelationship(type, id, relationshipPath, newLinkage) {
@@ -149,7 +164,8 @@ module.exports = class PostgresAdapter {
   }
 
   getModel(modelName) {
-    throw new Error('Not implemented');
+    // TODO: Catch undefined
+    return this.models[modelName];
   }
 
   getTypesAllowedInCollection(parentType) {
@@ -162,7 +178,7 @@ module.exports = class PostgresAdapter {
   }
 
   static getModelName(type) {
-    throw new Error('Not implemented');
+    return type;
   }
 };
 
