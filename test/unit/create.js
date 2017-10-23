@@ -103,5 +103,4 @@ describe('create', function() {
 
   it.skip('errors on surplus fields');
   it.skip('gives nice validation errors');
-  it.skip('is atomic');
 });

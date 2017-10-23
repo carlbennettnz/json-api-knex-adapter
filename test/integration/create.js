@@ -11,6 +11,10 @@ const POSTS = [{
   type: 'posts',
   attributes: { title: 'Post 6', date: new Date('2017-10-15') }
 }];
+const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
+  type: 'posts',
+  relationships: { author: { data: { id: '999', type: 'authors' } } }
+} ];
 
 describe('integrated create', function() {
   let app, db;
@@ -102,6 +106,20 @@ describe('integrated create', function() {
         .type('application/vnd.api+json')
         .send({ data: POSTS.map(p => ({ ...p, abc: 123 })) })
         .expect(201);
+    });
+
+    it('is atomic', async function() {
+      const [ { count: pre } ] = await app.connection('post').count();
+
+      await request(app)
+        .post('/posts')
+        .type('application/vnd.api+json')
+        .send({ data: POSTS_WITH_BAD_AUTHOR })
+        .expect(500);
+
+      const [ { count: post } ] = await app.connection('post').count();
+
+      expect(pre).equals(post);
     });
   });
 });
