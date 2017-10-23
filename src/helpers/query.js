@@ -30,6 +30,46 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
   return query;
 };
 
+/**
+ * Takes a MongoDB query object and and applies it to a knex query. Only supports comparison operators.
+ *
+ * @param  {Query}  query   Knex query.
+ * @param  {Object} filters [MongoDB query](https://docs.mongodb.com/manual/reference/operator/query/).
+ * @return {Query}          Knex query with filters applied.
+ */
 module.exports.applyFilters = function applyFilters(query, filters) {
-  throw new Error('Not implemented');
+  for (const key in filters) {
+    let val = filters[key];
+
+    if (val === null || typeof val !== 'object') {
+      val = { $eq: val };
+    }
+
+    query = applyComparisonOperators(query, key, val);
+  }
+
+  return query;
 };
+
+const OPERATORS = {
+  $eq: '=',
+  $ne: '!=',
+  $in: 'in',
+  $nin: 'not in',
+  $lt: '<',
+  $gt: '>',
+  $lte: '<=',
+  $gte: '>='
+};
+
+function applyComparisonOperators(query, key, obj) {
+  for (const op in obj) {
+    if (!(op in OPERATORS)) {
+      throw new APIError(400, undefined, 'Bad filter', `Unknown operator ${op}.`);
+    }
+
+    query = query.where(key, OPERATORS[op], obj[op]);
+  }
+
+  return query;
+}

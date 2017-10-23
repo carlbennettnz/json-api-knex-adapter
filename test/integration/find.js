@@ -56,18 +56,6 @@ describe('integrated find', function() {
       expect(res.body.data[3].id).to.equal('1');
     });
 
-    it.skip('applies filters', async function() {
-      const res = await request(app)
-        .get('/posts')
-        .query('filter[title]', 'Post 1')
-        .accept('application/vnd.api+json')
-        .expect(200);
-
-      expect(res.body.data).to.have.lengthOf(1);
-
-      expect(res.body.data[0].attributes.title).to.equal('Post 1');
-    });
-
     it.skip('populates relationships with include', async function() {
       const res = await request(app)
         .get('/posts')
@@ -79,6 +67,127 @@ describe('integrated find', function() {
       expect(res.body.included).to.have.lengthOf(1);
 
       expect(res.body.included[0].attributes.id).to.equal('1');
+    });
+
+    describe('filters', function() {
+      it('applies basic equality filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title]': 'Post 1' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(1);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+      });
+
+      it('applies $in filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$in]': [ 'Post 1', 'Post 2' ] })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+        expect(res.body.data[1].attributes.title).to.equal('Post 2');
+      });
+
+      it('applies $nin filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$nin]': [ 'Post 1', 'Post 2' ] })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 4');
+        expect(res.body.data[1].attributes.title).to.equal('Post 3');
+      });
+
+      it('applies $lt filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$lt]': 'Post 2' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(1);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+      });
+
+      it('applies $lte filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$lte]': 'Post 2' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+        expect(res.body.data[1].attributes.title).to.equal('Post 2');
+      });
+
+      it('applies $gt filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$gt]': 'Post 2' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 4');
+        expect(res.body.data[1].attributes.title).to.equal('Post 3');
+      });
+
+      it('applies $gte filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$gte]': 'Post 2' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(3);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 2');
+        expect(res.body.data[1].attributes.title).to.equal('Post 4');
+        expect(res.body.data[2].attributes.title).to.equal('Post 3');
+      });
+
+      it('applies $eq filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$eq]': 'Post 2' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(1);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 2');
+      });
+
+      it('applies $ne filters', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][title][$ne]': 'Post 2' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(3);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+        expect(res.body.data[1].attributes.title).to.equal('Post 4');
+        expect(res.body.data[2].attributes.title).to.equal('Post 3');
+      });
+
+      it('applies ordinal operators to dates', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query({ 'filter[simple][date][$lt]': '2017-07-15T00:00:00.000Z' })
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data[0].attributes.title).to.equal('Post 1');
+        expect(res.body.data[1].attributes.title).to.equal('Post 2');
+      });
     });
   });
 

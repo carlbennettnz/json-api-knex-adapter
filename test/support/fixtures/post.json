@@ -1,6 +1,6 @@
 [
-  { "title": "Post 1", "author": 1 },
-  { "title": "Post 2", "author": 1 },
-  { "title": "Post 4", "author": 1 },
-  { "title": "Post 3", "author": 1 }
+  { "title": "Post 1", "author": 1, "date": "2017-06-01T00:00:00.000Z"  },
+  { "title": "Post 2", "author": 1, "date": "2017-07-01T00:00:00.000Z"  },
+  { "title": "Post 4", "author": 1, "date": "2017-08-01T00:00:00.000Z"  },
+  { "title": "Post 3", "author": 1, "date": "2017-09-01T00:00:00.000Z"  }
 ]
