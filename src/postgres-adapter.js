@@ -1,7 +1,7 @@
 const realKnex = require('knex');
 const groupBy = require('lodash.groupby');
-const zipWith = require('lodash.zipwith');
-const { applySorts, applyFilters } = require('./helpers/query');
+const { applySorts, applyFilters, joinLinkedRelationships } = require('./helpers/query');
+const getIncludedResources = require('./helpers/includes');
 const { handleQueryError } = require('./helpers/errors');
 const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
 const { validateResources } = require('./helpers/validation');
@@ -10,7 +10,6 @@ const debug = require('debug')('resapi:pg');
 
 const {
   Collection,
-  Resource,
   Error: APIError
 } = require('resapi').types;
 
@@ -44,6 +43,7 @@ module.exports = class PostgresAdapter {
     const model = this.models[type];
     let query = this.knex.from(this.models[type].table);
     const singular = idOrIds && !Array.isArray(idOrIds);
+    let included = new Collection([]);
 
     if (singular) {
       query = query.where(model.idKey, idOrIds);
@@ -51,17 +51,27 @@ module.exports = class PostgresAdapter {
       query = query.whereIn(model.idKey, idOrIds);
     }
 
-    // ?fields[posts]=a,b,c
-    if (fields != null && Array.isArray(fields[type])) {
-      const f = [ ...fields[type] ];
+    if (!singular && filters != null) {
+      query = applyFilters(query, filters);
+    }
 
-      if (!f.includes(model.idKey)) {
-        f.push(model.idKey);
+    if (fields == null || !Array.isArray(fields[type])) {
+      fields = { [type]: [] };
+    }
+
+    if (includePaths) {
+      const visiblePaths = fields[type].length > 0 ? includePaths.filter(path => fields[type].includes(path)) : includePaths;
+      included = getIncludedResources(this.knex, query.clone(), visiblePaths, this.models, type);
+    }
+
+    // ?fields[posts]=a,b,c
+    if (fields[type].length > 0) {
+      if (!fields[type].includes(model.idKey)) {
+        fields[type].push(model.idKey);
       }
 
-      query = query.select(f);
+      query = query.select(fields[type]);
     } else {
-      fields = { [type]: [] };
       query = query.select(`${model.table}.*`);
     }
 
@@ -71,21 +81,13 @@ module.exports = class PostgresAdapter {
       query = applySorts(query, sorts, model);
     }
 
-    if (!singular && filters != null) {
-      query = applyFilters(query, filters);
-    }
-
-    if (includePaths) {
-      throw new Error('Not implemented');
-    }
-
     let records;
 
     debug('executing query:');
     debug(formatQuery(query));
 
     try {
-      records = await query;
+      [ records, included ] = await Promise.all([ query, included ]);
     } catch (err) {
       handleQueryError(err);
     }
@@ -93,8 +95,6 @@ module.exports = class PostgresAdapter {
     const primary = singular
       ? recordToResource(records[0], type, model, fields[type])
       : recordsToCollection(records, type, model, fields[type]);
-
-    const included = new Collection([]);
 
     return [ primary, included ];
   }

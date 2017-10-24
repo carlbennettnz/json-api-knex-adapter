@@ -291,18 +291,84 @@ describe('integrated find', function() {
       expect(tags[0].id).to.equal('1');
       expect(tags[1].id).to.equal('2');
     });
+  });
 
-    it.skip('populates relationships with include', async function() {
+  describe('includes', function() {
+    it('populates direct relationships', async function() {
       const res = await request(app)
         .get('/posts')
-        .query('include', 'author')
+        .query({ include: 'author' })
         .accept('application/vnd.api+json')
         .expect(200);
 
       expect(res.body.data).to.have.lengthOf(4);
       expect(res.body.included).to.have.lengthOf(1);
 
-      expect(res.body.included[0].attributes.id).to.equal('1');
+      expect(res.body.included[0].type).to.equal('authors');
+      expect(res.body.included[0].id).to.equal('1');
+    });
+
+    it('populates linked relationships', async function() {
+      const res = await request(app)
+        .get('/posts')
+        .query({ include: 'tags' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(4);
+      expect(res.body.included).to.have.lengthOf(2);
+
+      for (const inc of res.body.included) {
+        expect(inc.type).to.equal('tags');
+      }
+    });
+
+    it('populates direct and linked relationships together', async function() {
+      const res = await request(app)
+        .get('/posts')
+        .query({ include: 'tags,author' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(4);
+      expect(res.body.included).to.have.lengthOf(3);
+
+      for (const inc of res.body.included) {
+        expect(['tags', 'authors'].includes(inc.type)).to.be.ok;
+      }
+    });
+
+    it('populates multiple direct relationships of same type', async function() {
+      const res = await request(app)
+        .get('/awards')
+        .query({ include: 'winner,runnerUp' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(2);
+    });
+
+    it('populates multiple linked relationships of same type', async function() {
+      const res = await request(app)
+        .get('/awards')
+        .query({ include: 'winnerTags,runnerUpTags' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(2);
+    });
+
+    it('populates multiple direct and linked relationships together', async function() {
+      const res = await request(app)
+        .get('/awards')
+        .query({ include: 'winner,runnerUp,winnerTags,runnerUpTags' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(4);
     });
   });
 });

@@ -220,9 +220,9 @@ describe('find', function() {
     const date = new Date('2017-06-01');
 
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.select('post.*')).thenReturn(knex);
     td.when(knex.where('title', '=', 'Post 1')).thenReturn(knex);
-    td.when(knex.where('date', '<', td.matchers.argThat(d => d.valueOf() === date.valueOf()))).thenResolve(POSTS.slice(0, 1));
+    td.when(knex.where('date', '<', td.matchers.argThat(d => d.valueOf() === date.valueOf()))).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS.slice(0, 1));
 
     const [ primary, included ] = await adapter.find('posts', null, null, null, { title: 'Post 1', date: { $lt: date } }, null);
 

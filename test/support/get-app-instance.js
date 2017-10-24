@@ -31,6 +31,18 @@ const models = {
     idKey: '_id',
     attrs: [ 'name' ],
     relationships: []
+  },
+
+  awards: {
+    table: 'award',
+    idKey: '_id',
+    attrs: [ 'name' ],
+    relationships: [
+      { type: 'authors', key: 'winner' },
+      { type: 'authors', key: 'runnerUp' },
+      { type: 'tags', key: 'winnerTags', via: { table: 'award_winner_tag', on: 'award', aggregating: 'tag' } },
+      { type: 'tags', key: 'runnerUpTags', via: { table: 'award_runner_up_tag', on: 'award', aggregating: 'tag' } }
+    ]
   }
 };
 
@@ -46,6 +58,20 @@ const resourceTypes = {
     urlTemplates: {
       self: 'http://localhost:3000/authors/{id}',
       relationship: 'http://localhost:3000/authors/{ownerId}/relationships/{path}'
+    }
+  },
+
+  tags: {
+    urlTemplates: {
+      self: 'http://localhost:3000/tags/{id}',
+      relationship: 'http://localhost:3000/tags/{ownerId}/relationships/{path}'
+    }
+  },
+
+  awards: {
+    urlTemplates: {
+      self: 'http://localhost:3000/awards/{id}',
+      relationship: 'http://localhost:3000/awards/{ownerId}/relationships/{path}'
     }
   }
 };
@@ -68,18 +94,20 @@ function getAppInstance() {
   const resourceController = new ResourceController(registry);
   const handler = resourceController.handle.bind(resourceController);
 
-  app.route('/:type(posts)')
+  const typeParam = `:type(${Object.keys(resourceTypes).join('|')})`;
+
+  app.route(`/${typeParam}`)
     .all(handler);
 
-  app.route('/:type(posts)/:id')
+  app.route(`/${typeParam}/:id`)
     .get(handler)
     .patch(handler)
     .delete(handler);
 
-  app.route('/:type(posts)/:id/:related')
+  app.route(`/${typeParam}/:id/:related`)
     .get(handler);
 
-  app.route('/:type(posts)/:id/relationships/:relationship')
+  app.route(`/${typeParam}/:id/relationships/:relationship`)
     .get(handler)
     .post(handler)
     .patch(handler);
