@@ -5,6 +5,7 @@ const { applySorts, applyFilters } = require('./helpers/query');
 const { handleQueryError } = require('./helpers/errors');
 const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
 const { validateResources } = require('./helpers/validation');
+const formatQuery = require('./helpers/format-query');
 const debug = require('debug')('resapi:pg');
 
 const {
@@ -81,7 +82,7 @@ module.exports = class PostgresAdapter {
     let records;
 
     debug('executing query:');
-    debug(`\t${query.toString().replace(/ (from|[a-z]+ join|where|order by|group by|having|limit) /g, '\n\t$1 ')}`);
+    debug(formatQuery(query));
 
     try {
       records = await query;
