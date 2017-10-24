@@ -1,6 +1,6 @@
 const realKnex = require('knex');
 const groupBy = require('lodash.groupby');
-const { applySorts, applyFilters, joinLinkedRelationships } = require('./helpers/query');
+const { applySorts, applyFilters, applyFieldFilter, joinLinkedRelationships } = require('./helpers/query');
 const getIncludedResources = require('./helpers/includes');
 const { handleQueryError } = require('./helpers/errors');
 const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
@@ -41,6 +41,7 @@ module.exports = class PostgresAdapter {
    */
   async find(type, idOrIds, fields, sorts, filters, includePaths) {
     const model = this.models[type];
+    const primaryFields = fields != null && fields[type] != null ? fields[type] : [];
     let query = this.knex.from(this.models[type].table);
     const singular = idOrIds && !Array.isArray(idOrIds);
     let included = new Collection([]);
@@ -55,27 +56,13 @@ module.exports = class PostgresAdapter {
       query = applyFilters(query, filters);
     }
 
-    if (fields == null || !Array.isArray(fields[type])) {
-      fields = { [type]: [] };
-    }
-
     if (includePaths) {
-      const visiblePaths = fields[type].length > 0 ? includePaths.filter(path => fields[type].includes(path)) : includePaths;
+      const visiblePaths = primaryFields.length > 0 ? includePaths.filter(path => primaryFields.includes(path)) : includePaths;
       included = getIncludedResources(this.knex, query.clone(), visiblePaths, this.models, type);
     }
 
-    // ?fields[posts]=a,b,c
-    if (fields[type].length > 0) {
-      if (!fields[type].includes(model.idKey)) {
-        fields[type].push(model.idKey);
-      }
-
-      query = query.select(fields[type]);
-    } else {
-      query = query.select(`${model.table}.*`);
-    }
-
-    query = joinLinkedRelationships(this.knex, query, model, fields[type]);
+    query = applyFieldFilter(query, model, primaryFields);
+    query = joinLinkedRelationships(this.knex, query, model, primaryFields);
 
     if (Array.isArray(sorts)) {
       query = applySorts(query, sorts, model);
@@ -93,8 +80,8 @@ module.exports = class PostgresAdapter {
     }
 
     const primary = singular
-      ? recordToResource(records[0], type, model, fields[type])
-      : recordsToCollection(records, type, model, fields[type]);
+      ? recordToResource(records[0], type, model, primaryFields)
+      : recordsToCollection(records, type, model, primaryFields);
 
     return [ primary, included ];
   }

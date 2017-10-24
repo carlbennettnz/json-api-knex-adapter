@@ -84,6 +84,26 @@ function applyComparisonOperators(query, key, obj) {
 }
 
 /**
+ * Applies field filters, ensuring the id column is always included.
+ *
+ * @param  {QueryBuilder} query  Knex query.
+ * @param  {Model}        model  Model for primary resource type.
+ * @param  {[String]}     fields List of field names to include, or empty for all fields.
+ * @return {QueryBuilder}        Query filtered to the requested fields, or all fields for the primary table if fields is empty.
+ */
+module.exports.applyFieldFilter = function applyFieldFilter(query, model, fields) {
+  if (fields.length === 0) {
+    return query.select(`${model.table}.*`);
+  }
+
+  if (!fields.includes(model.idKey)) {
+    fields.push(model.idKey);
+  }
+
+  return query.select(fields);
+};
+
+/**
  * Applies appropriate joins to include ids for to-many relationships.
  *
  * @param  {Knex}     knex   Knex instance.
