@@ -13,11 +13,21 @@ const models = {
     table: 'post',
     idKey: '_id',
     attrs: [ 'title', 'date' ],
-    relationships: [ { type: 'authors', key: 'author' } ]
+    relationships: [
+      { type: 'authors', key: 'author' },
+      { type: 'tags', key: 'tags', via: { table: 'post_tag', on: 'post', aggregating: 'tag' } }
+    ]
   },
 
   authors: {
     table: 'author',
+    idKey: '_id',
+    attrs: [ 'name' ],
+    relationships: []
+  },
+
+  tags: {
+    table: 'tag',
     idKey: '_id',
     attrs: [ 'name' ],
     relationships: []

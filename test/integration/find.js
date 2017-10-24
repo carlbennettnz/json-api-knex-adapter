@@ -257,6 +257,41 @@ describe('integrated find', function() {
       expect(res.body.data.id).to.equal('1');
     });
 
+    it('includes all attributes', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { attributes } = res.body.data;
+
+      expect(attributes.title).to.equal('Post 1');
+      expect(attributes.date).to.equal('2017-05-31T12:00:00.000Z');
+    });
+
+    it('includes all local relationships', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { data: author } = res.body.data.relationships.author;
+
+      expect(author.id).to.equal('1');
+    });
+
+    it('includes all linked relationships', async function() {
+      const res = await request(app)
+        .get('/posts/1')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { data: tags } = res.body.data.relationships.tags;
+
+      expect(tags[0].id).to.equal('1');
+      expect(tags[1].id).to.equal('2');
+    });
+
     it.skip('populates relationships with include', async function() {
       const res = await request(app)
         .get('/posts')

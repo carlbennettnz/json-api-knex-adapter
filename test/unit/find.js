@@ -32,7 +32,8 @@ describe('find', function() {
   afterEach(td.reset);
 
   it('uses the correct basic structure', async function() {
-    td.when(knex.from('post')).thenResolve(POSTS);
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', null, null, null, null, null);
 
@@ -60,7 +61,8 @@ describe('find', function() {
   });
 
   it('finds all resources of type', async function() {
-    td.when(knex.from('post')).thenResolve(POSTS);
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', null, null, null, null, null);
 
@@ -77,7 +79,8 @@ describe('find', function() {
 
   it('filters by id array', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.whereIn('_id', ['1', '2'])).thenResolve(POSTS);
+    td.when(knex.whereIn('_id', ['1', '2'])).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', ['1', '2'], null, null, null, null);
 
@@ -94,7 +97,8 @@ describe('find', function() {
 
   it('finds a specific id', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.where('_id', '1')).thenResolve(POSTS.slice(0, 1));
+    td.when(knex.where('_id', '1')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS.slice(0, 1));
 
     const [ primary, included ] = await adapter.find('posts', '1', null, null, null, null);
 
@@ -167,6 +171,7 @@ describe('find', function() {
 
   it('sorts the results', async function() {
     td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenReturn(knex);
     td.when(knex.orderBy('_id', 'desc')).thenResolve([ POSTS[1], POSTS[0] ]);
 
     const [ primary, included ] = await adapter.find('posts', null, null, [ '-id' ], null, null);
@@ -180,7 +185,8 @@ describe('find', function() {
   });
 
   it(`throws on sorts of attrs that aren't in the model`, async function() {
-    td.when(knex.from('post')).thenResolve(POSTS);
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     try {
       await adapter.find('posts', null, null, [ 'password' ], null, null);
@@ -196,6 +202,7 @@ describe('find', function() {
 
   it('applies all sorts in order', async function() {
     td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenReturn(knex);
     td.when(knex.orderBy('title', 'asc')).thenReturn(knex);
     td.when(knex.orderBy('_id', 'desc')).thenResolve(POSTS);
 
@@ -213,6 +220,7 @@ describe('find', function() {
     const date = new Date('2017-06-01');
 
     td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenReturn(knex);
     td.when(knex.where('title', '=', 'Post 1')).thenReturn(knex);
     td.when(knex.where('date', '<', td.matchers.argThat(d => d.valueOf() === date.valueOf()))).thenResolve(POSTS.slice(0, 1));
 
@@ -224,7 +232,8 @@ describe('find', function() {
   });
 
   it('gives a nice error for non-object filters', async function() {
-    td.when(knex.from('post')).thenResolve(POSTS);
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     try {
       await adapter.find('posts', null, null, null, 'abc', null);
@@ -238,7 +247,8 @@ describe('find', function() {
   });
 
   it('gives a nice error for top-level operators', async function() {
-    td.when(knex.from('post')).thenResolve(POSTS);
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     try {
       await adapter.find('posts', null, null, null, { $or: [ { title: 'Post 1' }, { title: 'Post 2' } ] }, null);
@@ -252,7 +262,8 @@ describe('find', function() {
   });
 
   it('gives a nice error for unknown operators', async function() {
-    td.when(knex.from('post')).thenResolve(POSTS);
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve(POSTS);
 
     try {
       await adapter.find('posts', null, null, null, { title: { '<': 1 } }, null);

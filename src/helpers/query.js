@@ -82,3 +82,38 @@ function applyComparisonOperators(query, key, obj) {
 
   return query;
 }
+
+/**
+ * Applies appropriate joins to include ids for to-many relationships.
+ *
+ * @param  {Knex}     knex   Knex instance.
+ * @param  {Query}    query  Knex QueryBuilder instance.
+ * @param  {Object}   model  Model for type.
+ * @param  {[String]} fields Fields to include for primary resource type, or an empty array if all fields should be included.
+ * @return {Query}           Updated query.
+ */
+module.exports.joinLinkedRelationships = function joinLinkedRelationships(knex, query, model, fields) {
+  const linkedRels = model.relationships.filter(
+    rel => rel.via != null && (fields.length === 0 || fields.includes(rel.key))
+  );
+
+  if (linkedRels.length !== 0) {
+    for (const rel of linkedRels) {
+      if (rel.via.aggregating != null) {
+        query = query.select(knex.raw(`array_agg("${rel.via.table}"."${rel.via.aggregating}") as "${rel.key}"`));
+      } else {
+        query = query.select(knex.raw(`"${rel.via.showing}" as "${rel.key}"`));
+      }
+
+      query = query.leftJoin(
+        rel.via.table,
+        `${model.table}.${model.idKey}`,
+        `${rel.via.table}.${rel.via.on}`
+      );
+    }
+
+    query = query.groupBy(`${model.table}.${model.idKey}`);
+  }
+
+  return query;
+};

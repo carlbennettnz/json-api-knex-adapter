@@ -21,8 +21,10 @@ function database(knex) {
 
   async function clear() {
     return Promise.all([
-      knex.raw(`truncate post restart identity`),
-      knex.raw(`truncate author restart identity cascade`)
+      knex.raw(`truncate post restart identity cascade`),
+      knex.raw(`truncate author restart identity cascade`),
+      knex.raw(`truncate tag restart identity cascade`),
+      knex.raw(`truncate post_tag restart identity cascade`)
     ]);
   }
 

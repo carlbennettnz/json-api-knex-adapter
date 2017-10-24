@@ -61,7 +61,10 @@ module.exports = class PostgresAdapter {
       query = query.select(f);
     } else {
       fields = { [type]: [] };
+      query = query.select(`${model.table}.*`);
     }
+
+    query = joinLinkedRelationships(this.knex, query, model, fields[type]);
 
     if (Array.isArray(sorts)) {
       query = applySorts(query, sorts, model);

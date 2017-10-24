@@ -2,7 +2,8 @@ const { expect } = require('chai');
 const td = require('testdouble');
 const where = td.function();
 const query = { where };
-const { applyFilters } = require('../../../src/helpers/query');
+const realKnex = require('knex')({ client: 'pg' });
+const { applyFilters, joinLinkedRelationships } = require('../../../src/helpers/query');
 
 describe('query helpers', function() {
   afterEach(td.reset);
@@ -100,6 +101,90 @@ describe('query helpers', function() {
       td.verify(query.where('a', '=', null));
       td.verify(query.where('b', '>', null));
       td.verify(query.where('c', 'in', null));
+    });
+  });
+
+  describe('join linked relationships', function() {
+    const knex = { raw: td.function() };
+    const query = td.object(realKnex('post'));
+
+    it('joins to-one relationships', function() {
+      const model = {
+        table: 'l_table',
+        idKey: 'l_id',
+        relationships: [{
+          type: 'f',
+          key: 'l_key',
+          via: { table: 'f_table', on: 'f_key', showing: 'f_field' }
+        }]
+      };
+
+      const x = Symbol('x');
+      const y = Symbol('y');
+      td.when(knex.raw('"f_field" as "l_key"')).thenReturn(x);
+      td.when(query.select(x)).thenReturn(query);
+      td.when(query.leftJoin('f_table', 'l_table.l_id', 'f_table.f_key')).thenReturn(query);
+      td.when(query.groupBy('l_table.l_id')).thenReturn(y);
+
+      const q = joinLinkedRelationships(knex, query, model, []);
+
+      expect(q).to.equal(y);
+    });
+
+    it('joins to-many relationships', function() {
+      const model = {
+        table: 'l_table',
+        idKey: 'l_id',
+        relationships: [{
+          type: 'f',
+          key: 'l_key',
+          via: { table: 'f_table', on: 'f_key', aggregating: 'f_field' }
+        }]
+      };
+
+      const x = Symbol('x');
+      const y = Symbol('y');
+      td.when(knex.raw('array_agg("f_table"."f_field") as "l_key"')).thenReturn(x);
+      td.when(query.select(x)).thenReturn(query);
+      td.when(query.leftJoin('f_table', 'l_table.l_id', 'f_table.f_key')).thenReturn(query);
+      td.when(query.groupBy('l_table.l_id')).thenReturn(y);
+
+      const q = joinLinkedRelationships(knex, query, model, []);
+
+      expect(q).to.equal(y);
+    });
+
+    it('ignores relationships without a `via` attribute', function() {
+      const model = {
+        table: 'l_table',
+        idKey: 'l_id',
+        relationships: [{
+          type: 'f',
+          key: 'l_key'
+        }]
+      };
+
+      const x = Symbol('x');
+      const q = joinLinkedRelationships(null, x, model, []);
+
+      expect(q).to.equal(x);
+    });
+
+    it('ignores filtered fields', function() {
+      const model = {
+        table: 'l_table',
+        idKey: 'l_id',
+        relationships: [{
+          type: 'f',
+          key: 'l_key',
+          via: { table: 'f_table', on: 'f_key', aggregating: 'f_field' }
+        }]
+      };
+
+      const x = Symbol('x');
+      const q = joinLinkedRelationships(null, x, model, ['not_l_key']);
+
+      expect(q).to.equal(x);
     });
   });
 });

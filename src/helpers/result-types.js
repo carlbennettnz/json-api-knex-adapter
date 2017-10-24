@@ -20,16 +20,26 @@ function recordToResource(record, type, model, fields = []) {
     }
   });
 
-  // TODO: One-to-many relationships, probably supported via a linking table
   model.relationships.forEach(rel => {
     const fieldAllowed = fields.length === 0 || fields.includes(rel.key);
 
     if (!fieldAllowed || record[rel.key] == null) return;
 
-    const linkage = new Linkage({
-      type: rel.type,
-      id: String(record[rel.key])
-    });
+    let linkage;
+
+    if (rel.via == null) {
+      linkage = new Linkage({
+        type: rel.type,
+        id: String(record[rel.key])
+      });
+    } else {
+      const values = record[rel.key].filter(v => v != null).map(id => ({
+        type: rel.type,
+        id: String(id)
+      }));
+
+      linkage = new Linkage(values);
+    }
 
     relationships[rel.key] = new Relationship(linkage);
   });
