@@ -67,3 +67,7 @@ module.exports = {
   }
 }
 ```
+
+## Tests
+
+There are plenty of tests written, but current the integration tests won't work unless you have your database configure exactly the way mine is. I'm working on a knex migration that will automatically everything up.
