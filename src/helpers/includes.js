@@ -116,13 +116,13 @@ function validatePaths(paths, rels) {
  * @return {QueryBuilder}       Knex query returning the ids of the related resources.
  */
 function getSubqueryForLinkedRel(knex, query, model, rel) {
-  const foreignAttr = `"${rel.via.table}"."${rel.via.showing || rel.via.aggregating}"`;
-  const localPrimaryKey = `${model.table}.${model.idKey}`;
-  const foreignKey = `${rel.via.table}.${rel.via.on}`;
+  const foreignPK = `"${rel.via.table}"."${rel.via.pk}"`;
+  const localPK = `${model.table}.${model.idKey}`;
+  const foreignFK = `${rel.via.table}.${rel.via.fk}`;
 
   return query.clone()
-    .distinct(knex.raw(`${foreignAttr} as "${rel.key}"`))
-    .leftJoin(rel.via.table, localPrimaryKey, foreignKey);
+    .distinct(knex.raw(`${foreignPK} as "${rel.key}"`))
+    .leftJoin(rel.via.table, localPK, foreignFK);
 }
 
 /**

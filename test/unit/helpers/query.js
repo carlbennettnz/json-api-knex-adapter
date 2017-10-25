@@ -108,29 +108,6 @@ describe('query helpers', function() {
     const knex = { raw: td.function() };
     const query = td.object(realKnex('post'));
 
-    it('joins to-one relationships', function() {
-      const model = {
-        table: 'l_table',
-        idKey: 'l_id',
-        relationships: [{
-          type: 'f',
-          key: 'l_key',
-          via: { table: 'f_table', on: 'f_key', showing: 'f_field' }
-        }]
-      };
-
-      const x = Symbol('x');
-      const y = Symbol('y');
-      td.when(knex.raw('"f_field" as "l_key"')).thenReturn(x);
-      td.when(query.select(x)).thenReturn(query);
-      td.when(query.leftJoin('f_table', 'l_table.l_id', 'f_table.f_key')).thenReturn(query);
-      td.when(query.groupBy('l_table.l_id')).thenReturn(y);
-
-      const q = joinLinkedRelationships(knex, query, model, []);
-
-      expect(q).to.equal(y);
-    });
-
     it('joins to-many relationships', function() {
       const model = {
         table: 'l_table',
@@ -138,7 +115,7 @@ describe('query helpers', function() {
         relationships: [{
           type: 'f',
           key: 'l_key',
-          via: { table: 'f_table', on: 'f_key', aggregating: 'f_field' }
+          via: { table: 'f_table', fk: 'f_key', pk: 'f_field' }
         }]
       };
 
@@ -177,7 +154,7 @@ describe('query helpers', function() {
         relationships: [{
           type: 'f',
           key: 'l_key',
-          via: { table: 'f_table', on: 'f_key', aggregating: 'f_field' }
+          via: { table: 'f_table', fk: 'f_key', pk: 'f_field' }
         }]
       };
 

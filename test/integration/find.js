@@ -282,14 +282,24 @@ describe('integrated find', function() {
 
     it('includes all linked relationships', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/awards/1')
         .accept('application/vnd.api+json')
         .expect(200);
 
-      const { data: tags } = res.body.data.relationships.tags;
+      const { data: winner } = res.body.data.relationships.winner;
+      const { data: runnerUp } = res.body.data.relationships.runnerUp;
+      const { data: winnerTags } = res.body.data.relationships.winnerTags;
+      const { data: runnerUpTags } = res.body.data.relationships.runnerUpTags;
 
-      expect(tags[0].id).to.equal('1');
-      expect(tags[1].id).to.equal('2');
+      const winnerTagIds = winnerTags.map(t => t.id);
+
+      expect(winner.id).to.equal('1');
+      expect(runnerUp.id).to.equal('2');
+      expect(winnerTags).to.have.lengthOf(2);
+      expect(runnerUpTags).to.have.lengthOf(2);
+      expect(winnerTagIds).to.include('1');
+      expect(winnerTagIds).to.include('2');
+      expect(runnerUpTags[0].id).to.equal('2');
     });
   });
 

@@ -119,17 +119,13 @@ module.exports.joinLinkedRelationships = function joinLinkedRelationships(knex, 
 
   if (linkedRels.length !== 0) {
     for (const rel of linkedRels) {
-      if (rel.via.aggregating != null) {
-        query = query.select(knex.raw(`array_agg("${rel.via.table}"."${rel.via.aggregating}") as "${rel.key}"`));
-      } else {
-        query = query.select(knex.raw(`"${rel.via.showing}" as "${rel.key}"`));
-      }
-
-      query = query.leftJoin(
-        rel.via.table,
-        `${model.table}.${model.idKey}`,
-        `${rel.via.table}.${rel.via.on}`
-      );
+      query = query
+        .select(knex.raw(`array_agg("${rel.via.table}"."${rel.via.pk}") as "${rel.key}"`))
+        .leftJoin(
+          rel.via.table,
+          `${model.table}.${model.idKey}`,
+          `${rel.via.table}.${rel.via.fk}`
+        );
     }
 
     query = query.groupBy(`${model.table}.${model.idKey}`);

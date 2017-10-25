@@ -15,7 +15,7 @@ const models = {
     attrs: [ 'title', 'date' ],
     relationships: [
       { type: 'authors', key: 'author' },
-      { type: 'tags', key: 'tags', via: { table: 'post_tag', on: 'post', aggregating: 'tag' } }
+      { type: 'tags', key: 'tags', via: { table: 'post_tag', fk: 'post', pk: 'tag' } }
     ]
   },
 
@@ -40,8 +40,8 @@ const models = {
     relationships: [
       { type: 'authors', key: 'winner' },
       { type: 'authors', key: 'runnerUp' },
-      { type: 'tags', key: 'winnerTags', via: { table: 'award_winner_tag', on: 'award', aggregating: 'tag' } },
-      { type: 'tags', key: 'runnerUpTags', via: { table: 'award_runner_up_tag', on: 'award', aggregating: 'tag' } }
+      { type: 'tags', key: 'winnerTags', via: { table: 'award_winner_tag', fk: 'award', pk: 'tag' } },
+      { type: 'tags', key: 'runnerUpTags', via: { table: 'award_runner_up_tag', fk: 'award', pk: 'tag' } }
     ]
   }
 };
