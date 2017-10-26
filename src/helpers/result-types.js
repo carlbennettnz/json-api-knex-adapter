@@ -10,7 +10,7 @@ function recordsToCollection(records, type, model, fields = []) {
 }
 
 function recordToResource(record, type, model, fields = []) {
-  const id = String(record[model.idKey]);
+  const id = formatId(record[model.idKey]);
   const attrs = {};
   const relationships = {};
 
@@ -30,12 +30,12 @@ function recordToResource(record, type, model, fields = []) {
     if (rel.via == null) {
       linkage = new Linkage({
         type: rel.type,
-        id: String(record[rel.key])
+        id: formatId(record[rel.key])
       });
     } else {
       const values = record[rel.key].filter(v => v != null).map(id => ({
         type: rel.type,
-        id: String(id)
+        id: formatId(id)
       }));
 
       linkage = new Linkage(values);
@@ -57,6 +57,12 @@ function resourceToRecord(resource, model) {
   }
 
   return record;
+}
+
+function formatId(id) {
+  return id == null
+    ? null
+    : String(id);
 }
 
 module.exports.recordsToCollection = recordsToCollection;
