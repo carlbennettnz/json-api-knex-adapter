@@ -42,7 +42,7 @@ module.exports = class PostgresAdapter {
   async find(type, idOrIds, fields, sorts, filters, includePaths) {
     const model = this.models[type];
     const primaryFields = fields != null && fields[type] != null ? fields[type] : [];
-    let query = this.knex.from(this.models[type].table);
+    let query = this.knex.from(model.table);
     const singular = idOrIds && !Array.isArray(idOrIds);
     let included = new Collection([]);
 
