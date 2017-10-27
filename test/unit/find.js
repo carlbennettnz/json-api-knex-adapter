@@ -303,5 +303,21 @@ describe('find', function() {
     throw new Error('Expected missing resource in request for specific id to throw');
   });
 
+  it('throws 404 if no resources match a specific id', async function() {
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.where('_id', '123')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve([]);
+
+    try {
+      await adapter.find('posts', '123', null, null, null, null);
+    } catch (err) {
+      expect(err.status).to.equal('404');
+      expect(err.title).to.equal('Not found');
+      return;
+    }
+
+    throw new Error('Expected missing resource in request for specific id to throw');
+  });
+
   it.skip('includes resources');
 });
