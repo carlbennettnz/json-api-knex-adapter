@@ -53,7 +53,7 @@ module.exports = class PostgresAdapter {
     }
 
     if (!singular && filters != null) {
-      query = applyFilters(query, filters);
+      query = applyFilters(query, model, filters);
     }
 
     if (includePaths) {
