@@ -37,24 +37,32 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
  * @param  {Object} filters [MongoDB query](https://docs.mongodb.com/manual/reference/operator/query/).
  * @return {Query}          Knex query with filters applied.
  */
-module.exports.applyFilters = function applyFilters(query, filters) {
-  if (typeof filters !== 'object') {
+module.exports.applyFilters = function applyFilters(query, model, filters) {
+  if (typeof filters !== 'object' || Array.isArray(filters)) {
     throw new APIError(400, undefined, 'Bad filter', 'Filters must be an object.');
   }
 
   for (const key in filters) {
     let val = filters[key];
+    let qualifiedKey;
+    const rel = model.relationships.find(r => r.key === key);
 
     if (typeof key !== 'string' || key.startsWith('$')) {
       throw new APIError(400, undefined, 'Bad filter',
         `Expected to find an attribute name, got ${key}. Logical operators are not supported.`);
+    } else if (rel && rel.via != null) {
+      qualifiedKey = `${rel.via.table}.${rel.via.pk}`;
+    } else if ((rel && rel.via == null) || model.attrs.includes(key)) {
+      qualifiedKey = `${model.table}.${key}`;
+    } else {
+      throw new APIError(400, undefined, 'Bad filter', `Path ${key} does not exist.`);
     }
 
     if (val === null || typeof val !== 'object') {
       val = { $eq: val };
     }
 
-    query = applyComparisonOperators(query, key, val);
+    query = applyComparisonOperators(query, qualifiedKey, val);
   }
 
   return query;

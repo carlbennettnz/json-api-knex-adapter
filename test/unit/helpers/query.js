@@ -5,102 +5,230 @@ const query = { where };
 const realKnex = require('knex')({ client: 'pg' });
 const { applyFilters, joinLinkedRelationships } = require('../../../src/helpers/query');
 
+const model = {
+  table: 'post',
+  idKey: '_id',
+  attrs: [ 'title', 'date' ],
+  relationships: [
+    { type: 'authors', key: 'author' },
+    { type: 'tags', key: 'tags', via: { table: 'post_tag', fk: 'post', pk: 'tag' } }
+  ]
+};
+
 describe('query helpers', function() {
   afterEach(td.reset);
 
   describe('apply filters', function() {
     it('applies filters without operators', function() {
-      chainedQuery(3);
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '=', 1 ],
+        [ 'where', 'post.author',  '=', 'x' ],
+        [ 'where', 'post_tag.tag', '=', null ]
+      ]);
 
-      const r = applyFilters(query, { a: 1, b: 'x', c: null });
+      const r = applyFilters(q1, model, {
+        title:  1,
+        author: 'x',
+        tags:   null
+      });
 
-      expect(r).to.exist;
-
-      td.verify(query.where('a', '=', 1));
-      td.verify(query.where('b', '=', 'x'));
-      td.verify(query.where('c', '=', null));
+      expect(r).to.equal(q2);
     });
 
     it('applies $in filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $in: [ 1, 2 ] } });
-      expect(r).to.exist;
-      td.verify(query.where('a', 'in', [ 1, 2 ]));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   'in', [ 1, 2 ] ],
+        [ 'where', 'post.author',  'in', [ 'x', 'y' ] ],
+        [ 'where', 'post_tag.tag', 'in', [] ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $in: [ 1, 2 ] },
+        author: { $in: [ 'x', 'y' ] },
+        tags:   { $in: [] }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('applies $in filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $nin: [ 1, 2 ] } });
-      expect(r).to.exist;
-      td.verify(query.where('a', 'not in', [ 1, 2 ]));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   'not in', [ 1, 2 ] ],
+        [ 'where', 'post.author',  'not in', [ 'x', 'y' ] ],
+        [ 'where', 'post_tag.tag', 'not in', [] ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $nin: [ 1, 2 ] },
+        author: { $nin: [ 'x', 'y' ] },
+        tags:   { $nin: [] }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('applies $lt filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $lt: 1 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '<', 1));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '<', 1 ],
+        [ 'where', 'post.author',  '<', 'x' ],
+        [ 'where', 'post_tag.tag', '<', null ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $lt: 1 },
+        author: { $lt: 'x' },
+        tags:   { $lt: null }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('applies $gt filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $gt: 1 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '>', 1));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '>', 1 ],
+        [ 'where', 'post.author',  '>', 'x' ],
+        [ 'where', 'post_tag.tag', '>', null ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $gt: 1 },
+        author: { $gt: 'x' },
+        tags:   { $gt: null }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('applies $lte filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $lte: 1 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '<=', 1));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '<=', 1 ],
+        [ 'where', 'post.author',  '<=', 'x' ],
+        [ 'where', 'post_tag.tag', '<=', null ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $lte: 1 },
+        author: { $lte: 'x' },
+        tags:   { $lte: null }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('applies $gte filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $gte: 1 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '>=', 1));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '>=', 1 ],
+        [ 'where', 'post.author',  '>=', 'x' ],
+        [ 'where', 'post_tag.tag', '>=', null ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $gte: 1 },
+        author: { $gte: 'x' },
+        tags:   { $gte: null }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('applies $ne filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $ne: 1 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '!=', 1));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '!=', 1 ],
+        [ 'where', 'post.author',  '!=', 'x' ],
+        [ 'where', 'post_tag.tag', '!=', null ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $ne: 1 },
+        author: { $ne: 'x' },
+        tags:   { $ne: null }
+      });
+
+      expect(r).to.equal(q2);
     });
 
-    it('applies $ne filter', function() {
-      chainedQuery(1);
-      const r = applyFilters(query, { a: { $eq: 1 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '=', 1));
+    it('applies $eq filter', function() {
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '=', 1 ],
+        [ 'where', 'post.author',  '=', 'x' ],
+        [ 'where', 'post_tag.tag', '=', null ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title:  { $eq: 1 },
+        author: { $eq: 'x' },
+        tags:   { $eq: null }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('can combine operators', function() {
-      chainedQuery(3);
-      const r = applyFilters(query, { a: { $ne: 1, $lt: 7 }, b: { $gt: 5 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '!=', 1));
-      td.verify(query.where('a', '<', 7));
-      td.verify(query.where('b', '>', 5));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '!=', 'x' ],
+        [ 'where', 'post.title',   '<',  'y' ],
+        [ 'where', 'post_tag.tag', '>',  5 ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title: { $ne: 'x', $lt: 'y' },
+        tags: { $gt: 5 }
+      });
+
+      expect(r).to.equal(q2);
     });
 
     it('can combine operators and plain filters', function() {
-      chainedQuery(2);
-      const r = applyFilters(query, { a: 5, b: { $gt: 5 } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '=', 5));
-      td.verify(query.where('b', '>', 5));
+      const [ q1, q2 ] = chainedQuery([
+        [ 'where', 'post.title',   '=', 'x' ],
+        [ 'where', 'post_tag.tag', '>',  5 ]
+      ]);
+
+      const r = applyFilters(q1, model, {
+        title: 'x',
+        tags: { $gt: 5 }
+      });
+
+      expect(r).to.equal(q2);
     });
 
-    it('deals with nulls', function() {
-      chainedQuery(3);
-      const r = applyFilters(query, { a: null, b: { $gt: null }, c: { $in: null } });
-      expect(r).to.exist;
-      td.verify(query.where('a', '=', null));
-      td.verify(query.where('b', '>', null));
-      td.verify(query.where('c', 'in', null));
+    it('throws if given an invalid filter', function() {
+      try {
+        applyFilters(null, { attrs: [], relationships: [] }, []);
+      } catch (err) {
+        expect(err.status).to.equal('400');
+        expect(err.title).to.equal('Bad filter');
+        expect(err.detail).to.equal('Filters must be an object.');
+        return;
+      }
+
+      throw new Error('Expected bad key to cause exception to be thrown');
+    });
+
+    it('throws if asked to filter by a non-existent key', function() {
+      try {
+        applyFilters(null, { attrs: [], relationships: [] }, { a: 1 });
+      } catch (err) {
+        expect(err.status).to.equal('400');
+        expect(err.title).to.equal('Bad filter');
+        expect(err.detail).to.equal('Path a does not exist.');
+        return;
+      }
+
+      throw new Error('Expected bad key to cause exception to be thrown');
+    });
+
+    it('throws if given a top-level operator', function() {
+      try {
+        applyFilters(null, { attrs: [], relationships: [] }, { $and: [ { x: 1 } ] });
+      } catch (err) {
+        expect(err.status).to.equal('400');
+        expect(err.title).to.equal('Bad filter');
+        expect(err.detail).to.equal('Expected to find an attribute name, got $and. Logical operators are not supported.');
+        return;
+      }
+
+      throw new Error('Expected bad key to cause exception to be thrown');
     });
   });
 
@@ -166,6 +294,15 @@ describe('query helpers', function() {
   });
 });
 
-function chainedQuery(times) {
-  td.when(query.where(), { ignoreExtraArgs: true, times }).thenReturn(query);
+function chainedQuery(argSets) {
+  const q1 = td.object(query);
+  let q2 = q1;
+
+  for (const [ fn, ...args ] of argSets) {
+    const q = q2;
+    q2 = td.object(query);
+    td.when(q[fn](...args)).thenReturn(q2);
+  }
+
+  return [ q1, q2 ];
 }
