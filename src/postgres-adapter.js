@@ -79,6 +79,10 @@ module.exports = class PostgresAdapter {
       handleQueryError(err);
     }
 
+    if (singular && records.length === 0) {
+      throw new APIError(404, undefined, 'Not found');
+    }
+
     const primary = singular
       ? recordToResource(records[0], type, model, primaryFields)
       : recordsToCollection(records, type, model, primaryFields);

@@ -276,5 +276,32 @@ describe('find', function() {
     throw new Error('Expected bad filter to cause promise rejection');
   });
 
+  it('returns an empty collection if no resources match', async function() {
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.where('post.title', '=', 'Not a Title')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve([]);
+
+    const [ primary, included ] = await adapter.find('posts', null, null, null, { title: 'Not a Title' }, null);
+
+    expect(primary.resources).to.have.lengthOf(0);
+    expect(included.resources).to.have.lengthOf(0);
+  });
+
+  it('throws 404 if no resources match a specific id', async function() {
+    td.when(knex.from('post')).thenReturn(knex);
+    td.when(knex.where('_id', '123')).thenReturn(knex);
+    td.when(knex.select('post.*')).thenResolve([]);
+
+    try {
+      await adapter.find('posts', '123', null, null, null, null);
+    } catch (err) {
+      expect(err.status).to.equal('404');
+      expect(err.title).to.equal('Not found');
+      return;
+    }
+
+    throw new Error('Expected missing resource in request for specific id to throw');
+  });
+
   it.skip('includes resources');
 });
