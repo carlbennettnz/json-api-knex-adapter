@@ -52,7 +52,7 @@ module.exports.applyFilters = function applyFilters(query, model, filters) {
         `Expected to find an attribute name, got ${key}. Logical operators are not supported.`);
     } else if (rel && rel.via != null) {
       qualifiedKey = `${rel.via.table}.${rel.via.pk}`;
-    } else if ((rel && rel.via == null) || model.attrs.includes(key)) {
+    } else if ((rel && rel.via == null) || model.attrs.includes(key) || model.idKey === key) {
       qualifiedKey = `${model.table}.${key}`;
     } else {
       throw new APIError(400, undefined, 'Bad filter', `Path ${key} does not exist.`);
