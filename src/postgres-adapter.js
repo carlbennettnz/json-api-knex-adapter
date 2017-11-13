@@ -7,6 +7,7 @@ const { recordsToCollection, recordToResource, resourceToRecord } = require('./h
 const { validateResources } = require('./helpers/validation');
 const formatQuery = require('./helpers/format-query');
 const debug = require('debug')('resapi:pg');
+const validateModels = require('./helpers/validate-models');
 
 const {
   Collection,
@@ -15,6 +16,8 @@ const {
 
 module.exports = class PostgresAdapter {
   constructor(models, knex = realKnex) {
+    validateModels(models);
+
     this.models = models;
     this.knex = knex;
   }
