@@ -1,4 +1,4 @@
-const realKnex = require('knex');
+const assert = require('assert');
 const groupBy = require('lodash.groupby');
 const { applySorts, applyFilters, applyFieldFilter, joinLinkedRelationships } = require('./helpers/query');
 const getIncludedResources = require('./helpers/includes');
@@ -15,8 +15,9 @@ const {
 } = require('resapi').types;
 
 module.exports = class PostgresAdapter {
-  constructor(models, knex = realKnex) {
+  constructor(models, knex) {
     validateModels(models);
+    assert(knex, 'A connected knex client is required.');
 
     this.models = models;
     this.knex = knex;
