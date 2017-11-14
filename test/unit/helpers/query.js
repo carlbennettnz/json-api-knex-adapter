@@ -8,7 +8,10 @@ const { applyFilters, joinLinkedRelationships } = require('../../../src/helpers/
 const model = {
   table: 'post',
   idKey: '_id',
-  attrs: [ 'title', 'date' ],
+  attrs: [
+    { key: 'title' },
+    { key: 'date' }
+  ],
   relationships: [
     { type: 'authors', key: 'author' },
     { type: 'tags', key: 'tags', via: { table: 'post_tag', fk: 'post', pk: 'tag' } }

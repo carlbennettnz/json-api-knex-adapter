@@ -14,7 +14,7 @@ const models = {
   posts: {
     table: 'post',
     idKey: '_id',
-    attrs: [ 'title' ],
+    attrs: [ { key: 'title' } ],
     relationships: [ { type: 'authors', key: 'author' } ]
   }
 };

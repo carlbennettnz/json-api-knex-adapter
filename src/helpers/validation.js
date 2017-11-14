@@ -8,7 +8,7 @@ function validateResources(resources, models) {
     const relationships = model.relationships.map(r => r.key);
 
     for (const attr in res.attrs) {
-      if (!model.attrs.includes(attr)) {
+      if (!model.attrs.find(a => a.key === attr)) {
         const error = new APIError(400, undefined, 'Bad attribute', `The provided attribute ${attr} does not exist on the model.`);
         errors.push(error);
       }

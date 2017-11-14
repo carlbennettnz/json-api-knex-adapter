@@ -13,7 +13,7 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
   // resulting in data leakage.
   const invalidSorts = sortObjs.filter(({ attr }) => {
     return attr !== model.idKey
-      && !model.attrs.includes(attr)
+      && !model.attrs.map(attr => attr.key).includes(attr)
       && !model.relationships.map(r => r.attr).includes(attr);
   });
 
@@ -46,13 +46,14 @@ module.exports.applyFilters = function applyFilters(query, model, filters) {
     let val = filters[key];
     let qualifiedKey;
     const rel = model.relationships.find(r => r.key === key);
+    const attr = model.attrs.find(attr => attr.key === key);
 
     if (typeof key !== 'string' || key.startsWith('$')) {
       throw new APIError(400, undefined, 'Bad filter',
         `Expected to find an attribute name, got ${key}. Logical operators are not supported.`);
     } else if (rel && rel.via != null) {
       qualifiedKey = `${rel.via.table}.${rel.via.pk}`;
-    } else if ((rel && rel.via == null) || model.attrs.includes(key) || model.idKey === key) {
+    } else if ((rel && rel.via == null) || attr || model.idKey === key) {
       qualifiedKey = `${model.table}.${key}`;
     } else {
       throw new APIError(400, undefined, 'Bad filter', `Path ${key} does not exist.`);

@@ -8,6 +8,7 @@ const { validateResources } = require('./helpers/validation');
 const formatQuery = require('./helpers/format-query');
 const debug = require('debug')('resapi:pg');
 const validateModels = require('./helpers/validate-models');
+const normalizeModels = require('./helpers/normalize-models');
 
 const {
   Collection,
@@ -17,9 +18,11 @@ const {
 module.exports = class PostgresAdapter {
   constructor(models, knex) {
     validateModels(models);
+    const normalizedModels = normalizeModels(models);
+
     assert(knex, 'A connected knex client is required.');
 
-    this.models = models;
+    this.models = normalizedModels;
     this.knex = knex;
   }
 
