@@ -163,7 +163,7 @@ function validateRelationships(model, modelName) {
       if (disallowedViaProps.length > 0) {
         const inflection = disallowedViaProps.length === 1 ? 'y' : 'ies';
         const areIs = disallowedViaProps.length === 1 ? 'is' : 'are';
-      const list = disallowedViaProps.map(prop => `'${prop}'`).join(', ');
+        const list = disallowedViaProps.map(prop => `'${prop}'`).join(', ');
         throw makeError(modelName, `The propert${inflection} ${list} ${areIs} not allowed in relationship via objects`);
       }
     }

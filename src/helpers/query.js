@@ -34,6 +34,7 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
  * Takes a MongoDB query object and and applies it to a knex query. Only supports comparison operators.
  *
  * @param  {Query}  query   Knex query.
+ * @param  {Query}  model   The primary model being filtered.
  * @param  {Object} filters [MongoDB query](https://docs.mongodb.com/manual/reference/operator/query/).
  * @return {Query}          Knex query with filters applied.
  */
@@ -48,7 +49,7 @@ module.exports.applyFilters = function applyFilters(query, model, filters) {
     const rel = model.relationships.find(r => r.key === key);
     const attr = model.attrs.find(attr => attr.key === key);
 
-    if (typeof key !== 'string' || key.startsWith('$')) {
+    if (keyIsOperator(key)) {
       throw new APIError(400, undefined, 'Bad filter',
         `Expected to find an attribute name, got ${key}. Logical operators are not supported.`);
     } else if (rel && rel.via != null) {
@@ -68,6 +69,10 @@ module.exports.applyFilters = function applyFilters(query, model, filters) {
 
   return query;
 };
+
+function keyIsOperator(key) {
+  return typeof key !== 'string' || key.startsWith('$');
+}
 
 const OPERATORS = {
   $eq: '=',

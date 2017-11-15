@@ -1,4 +1,3 @@
-const { Error: APIError } = require('resapi').types;
 const { resourceToRecord } = require('./result-types');
 
 function validateResources(resources, models) {

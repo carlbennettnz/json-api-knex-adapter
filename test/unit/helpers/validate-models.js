@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 const { expect } = require('chai');
 const validateMany = require('../../../src/helpers/validate-models');
 
