@@ -2,7 +2,7 @@ const assert = require('assert');
 const groupBy = require('lodash.groupby');
 const { applySorts, applyFilters, applyFieldFilter, joinLinkedRelationships } = require('./helpers/query');
 const getIncludedResources = require('./helpers/includes');
-const { handleQueryError } = require('./helpers/errors');
+const { handleQueryError, handleSaveError } = require('./helpers/errors');
 const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
 const { validateResources } = require('./helpers/validation');
 const formatQuery = require('./helpers/format-query');
@@ -106,14 +106,18 @@ module.exports = class PostgresAdapter {
    * @returns {Promise}                                  A copy of the Collection or Resource with IDs added.
    */
   async create(parentType, resourceOrCollection) {
-    return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
-      const records = rs.map(r => resourceToRecord(r, model));
+    return mapResourceTypes(resourceOrCollection, this.knex, this.models, async (trx, type, model, rs) => {
+      const records = rs.map(resourceToRecord);
 
-      return trx
-        .insert(records)
-        .into(model.table)
-        .returning('*')
-        .then(inserted => inserted.map(r => recordToResource(r, type, model)));
+      try {
+        return await trx
+          .insert(records)
+          .into(model.table)
+          .returning('*')
+          .then(inserted => inserted.map(r => recordToResource(r, type, model)));
+      } catch (err) {
+        handleSaveError(err, model);
+      }
     });
   }
 
