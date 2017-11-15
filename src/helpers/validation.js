@@ -9,15 +9,19 @@ function validateResources(resources, models) {
 
     for (const attr in res.attrs) {
       if (!model.attrs.find(a => a.key === attr)) {
-        const error = new APIError(400, undefined, 'Bad attribute', `The provided attribute ${attr} does not exist on the model.`);
-        errors.push(error);
+        // We really, really should be doing this, but it's not the way Mongoose works, so I've removed it for now.
+        // const error = new APIError(400, undefined, 'Bad attribute', `The provided attribute ${attr} does not exist on the model.`);
+        // errors.push(error);
+        delete res.attrs[attr];
       }
     }
 
     for (const rel in res.relationships) {
       if (!relationships.includes(rel)) {
-        const error = new APIError(400, undefined, 'Bad relationship', `The provided relationship ${rel} does not exist on the model.`);
-        errors.push(error);
+        // Same as above
+        // const error = new APIError(400, undefined, 'Bad relationship', `The provided relationship ${rel} does not exist on the model.`);
+        // errors.push(error);
+        delete res.relationships[rel];
       }
     }
   }
