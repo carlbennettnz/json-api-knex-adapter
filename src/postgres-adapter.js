@@ -132,7 +132,7 @@ module.exports = class PostgresAdapter {
   async update(parentType, resourceOrCollection) {
     return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
       const promises = rs.map(r => {
-        const record = resourceToRecord(r, model);
+        const record = resourceToRecord(r);
 
         // TODO: Batch these updates somehow for efficiency
         return trx(model.table)

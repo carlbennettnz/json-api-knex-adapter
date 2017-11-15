@@ -47,8 +47,16 @@ function recordToResource(record, type, model, fields = []) {
   return new Resource(type, id, attrs, relationships);
 }
 
-function resourceToRecord(resource, model) {
-  const record = { ...resource.attrs };
+function resourceToRecord(resource, { stringifyObjects = true } = {}) {
+  const record = {};
+
+  for (const attr in resource.attrs) {
+    const val = resource.attrs[attr];
+
+    record[attr] = stringifyObjects && val !== null && typeof val === 'object'
+      ? JSON.stringify(val)
+      : val;
+  }
 
   for (const rel in resource.relationships) {
     record[rel] = resource.relationships[rel].linkage.value != null
