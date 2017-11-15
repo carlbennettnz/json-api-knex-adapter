@@ -1,4 +1,5 @@
 const { Error: APIError } = require('resapi').types;
+const { resourceToRecord } = require('./result-types');
 
 function validateResources(resources, models) {
   const errors = [];
@@ -23,6 +24,10 @@ function validateResources(resources, models) {
         // errors.push(error);
         delete res.relationships[rel];
       }
+    }
+
+    if (typeof model.validate === 'function') {
+      model.validate.call(resourceToRecord(res, { stringifyObjects: false }));
     }
   }
 
