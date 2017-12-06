@@ -14,9 +14,9 @@ function recordToResource(record, type, model, fields = []) {
   const attrs = {};
   const relationships = {};
 
-  model.attrs.forEach(({ key }) => {
+  model.attrs.forEach(({ key, deserialize }) => {
     if (record[key] != null) {
-      attrs[key] = record[key];
+      attrs[key] = deserialize(record[key]);
     }
   });
 
