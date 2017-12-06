@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const PostgresAdapter = require('../../src/postgres-adapter');
 const td = require('testdouble');
+const normalizeModels = require('../../src/helpers/normalize-models');
 const realKnex = require('knex')({ client: 'pg' });
 const {
   Collection,
@@ -10,14 +11,14 @@ const {
   Error: APIError
 } = require('resapi').types;
 
-const models = {
+const models = normalizeModels({
   posts: {
     table: 'post',
     idKey: '_id',
     attrs: [ 'title', 'date' ],
     relationships: [ { type: 'authors', key: 'author' } ]
   }
-};
+});
 
 const knex = td.object(realKnex('post'));
 

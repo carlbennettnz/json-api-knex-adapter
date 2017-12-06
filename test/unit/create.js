@@ -3,6 +3,7 @@ const PostgresAdapter = require('../../src/postgres-adapter');
 const td = require('testdouble');
 const realKnex = require('knex')({ client: 'pg' });
 const { recordsToCollection } = require('../../src/helpers/result-types');
+const normalizeModels = require('../../src/helpers/normalize-models');
 const {
   Collection,
   Resource,
@@ -10,14 +11,14 @@ const {
   Relationship
 } = require('resapi').types;
 
-const models = {
+const models = normalizeModels({
   posts: {
     table: 'post',
     idKey: '_id',
     attrs: [ { key: 'title' } ],
     relationships: [ { type: 'authors', key: 'author' } ]
   }
-};
+});
 
 const knex = td.object({ transaction: realKnex.transaction });
 const POSTS = recordsToCollection([ { title: 'Post 1', author: 1 }, { title: 'Post 2', author: 1 } ], 'posts', models.posts);

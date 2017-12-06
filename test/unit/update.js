@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const PostgresAdapter = require('../../src/postgres-adapter');
 const td = require('testdouble');
 const realKnex = require('knex')({ client: 'pg' });
+const normalizeModels = require('../../src/helpers/normalize-models');
 const { recordsToCollection } = require('../../src/helpers/result-types');
 const {
   Collection,
@@ -10,14 +11,14 @@ const {
   Relationship
 } = require('resapi').types;
 
-const models = {
+const models = normalizeModels({
   posts: {
     table: 'post',
     idKey: '_id',
     attrs: [ { key: 'title' } ],
     relationships: [ { type: 'authors', key: 'author' } ]
   }
-};
+});
 
 const knex = td.object({ transaction: realKnex.transaction });
 const POSTS_WITH_IDS = recordsToCollection(

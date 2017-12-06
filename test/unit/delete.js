@@ -1,18 +1,19 @@
 const { expect } = require('chai');
 const PostgresAdapter = require('../../src/postgres-adapter');
+const normalizeModels = require('../../src/helpers/normalize-models');
 const td = require('testdouble');
 const {
   Error: APIError
 } = require('resapi').types;
 
-const models = {
+const models = normalizeModels({
   posts: {
     table: 'post',
     idKey: '_id',
     attrs: [ 'title' ],
     relationships: [ { type: 'authors', key: 'author' } ]
   }
-};
+});
 
 const knex = td.object();
 const adapter = new PostgresAdapter(models, knex);
