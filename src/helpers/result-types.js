@@ -47,24 +47,40 @@ function recordToResource(record, type, model, fields = []) {
   return new Resource(type, id, attrs, relationships);
 }
 
-function resourceToRecord(resource, { stringifyObjects = true } = {}) {
-  const record = {};
+function resourceToRecord(resource, model, { stringifyObjects = true } = {}) {
+  const primary = {};
 
   for (const attr in resource.attrs) {
     const val = resource.attrs[attr];
 
-    record[attr] = stringifyObjects && val !== null && typeof val === 'object'
+    primary[attr] = stringifyObjects && val !== null && typeof val === 'object'
       ? JSON.stringify(val)
       : val;
   }
 
-  for (const rel in resource.relationships) {
-    record[rel] = resource.relationships[rel].linkage.value != null
-      ? resource.relationships[rel].linkage.value.id
+  for (const rel of model.relationships.filter(rel => !rel.via)) {
+    if (!resource.relationships[rel.key]) continue;
+
+    primary[rel.key] = resource.relationships[rel.key].linkage.value != null
+      ? resource.relationships[rel.key].linkage.value.id
       : null;
   }
 
-  return record;
+  const linksFn = primaryId => {
+    const links = {};
+
+    for (const rel of model.relationships.filter(rel => 'via' in rel)) {
+      if (!resource.relationships[rel.key] || resource.relationships[rel.key].linkage.value.length === 0) continue;
+
+      links[rel.via.table] = resource.relationships[rel.key].linkage.value
+        .map(linkage => linkage.id)
+        .map(id => ({ [rel.via.pk]: id, [rel.via.fk]: primaryId }));
+    }
+
+    return links;
+  };
+
+  return { primary, linksFn };
 }
 
 function formatId(id) {

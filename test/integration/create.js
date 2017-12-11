@@ -10,6 +10,13 @@ const POSTS = [{
 }, {
   type: 'posts',
   attributes: { title: 'Post 6', date: new Date('2017-10-15') }
+}, {
+  type: 'posts',
+  attributes: { title: 'Post 5', date: new Date('2017-10-15') },
+  relationships: {
+    author: { data: { id: '1', type: 'authors' } },
+    tags: { data: [ { id: '1', type: 'tags' } ] }
+  }
 }];
 const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
   type: 'posts',
@@ -60,6 +67,27 @@ describe('integrated create', function() {
         .type('application/vnd.api+json')
         .send({ data: { ...POSTS[0], abc: 123 } })
         .expect(201);
+    });
+
+    it('saves to-many relationships', async function() {
+      const result = await request(app)
+        .post('/posts')
+        .type('application/vnd.api+json')
+        .send({ data: POSTS[2] })
+        .expect(201);
+
+      expect(result.body.data.relationships.tags).to.exist;
+      expect(result.body.data.relationships.tags.data).to.have.lengthOf(1);
+    });
+
+    it('does not return to-many relationship if value relationship is empty', async function() {
+      const result = await request(app)
+        .post('/posts')
+        .type('application/vnd.api+json')
+        .send({ data: { ...POSTS[2], relationships: { author: POSTS[2].relationships.author, tags: { data: [] } } } })
+        .expect(201);
+
+      expect(result.body.data.relationships.tags).to.not.exist;
     });
   });
 

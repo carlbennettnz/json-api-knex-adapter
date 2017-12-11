@@ -107,14 +107,47 @@ module.exports = class PostgresAdapter {
    */
   async create(parentType, resourceOrCollection) {
     return mapResourceTypes(resourceOrCollection, this.knex, this.models, async (trx, type, model, rs) => {
-      const records = rs.map(resourceToRecord);
+      const records = rs.map(r => resourceToRecord(r, model));
+      const primaries = records.map(r => r.primary);
+      const linksFn = ids => combineRecordSets(records.map(r => r.linksFn(ids.shift())));
 
       try {
-        return await trx
-          .insert(records)
+        const primarySaved = await trx
+          .insert(primaries)
           .into(model.table)
-          .returning('*')
-          .then(inserted => inserted.map(r => recordToResource(r, type, model)));
+          .returning('*');
+
+        const links = linksFn(primarySaved.map(p => p[model.idKey]));
+
+        const linksSaved = await Promise.all(
+          Object.keys(links).map(table => {
+            const records = links[table];
+
+            return trx
+              .insert(records)
+              .into(table)
+              .returning('*')
+              .then(inserted => ({ table, inserted }));
+          })
+        ).then(results => [].concat(...results));
+
+        for (const record of primarySaved) {
+          for (const rel of model.relationships.filter(rel => 'via' in rel)) {
+            const savedToTable = linksSaved.find(l => l.table === rel.via.table);
+
+            if (savedToTable == null) continue;
+
+            const fks = savedToTable.inserted
+              .filter(link => link[rel.via.fk] === record[model.idKey])
+              .map(link => link[rel.via.pk]);
+
+            if (fks.length > 0) {
+              record[rel.key] = fks;
+            }
+          }
+        }
+
+        return primarySaved.map(r => recordToResource(r, type, model));
       } catch (err) {
         handleSaveError(err, model);
       }
@@ -130,21 +163,65 @@ module.exports = class PostgresAdapter {
    * @returns {Promise}                                  A copy of the Collection or Resource with updates applied.
    */
   async update(parentType, resourceOrCollection) {
-    return mapResourceTypes(resourceOrCollection, this.knex, this.models, (trx, type, model, rs) => {
-      const promises = rs.map(r => {
-        const record = resourceToRecord(r);
+    const isCollection = resourceOrCollection instanceof Collection;
+    const resources = isCollection
+      ? resourceOrCollection.resources
+      : [ resourceOrCollection ];
 
-        // TODO: Batch these updates somehow for efficiency
-        return trx(model.table)
-          .where(model.idKey, '=', r.id)
-          .update(record)
-          .returning('*');
-      });
+    validateResources(resources, this.models);
 
-      return Promise.all(promises).then(
-        records => [].concat(...records).map(record => recordToResource(record, type, model))
-      );
+    const byType = groupBy(resources, r => r.type);
+
+    await this.knex.transaction(trx => {
+      const promises = [];
+
+      for (const type in byType) {
+        const model = this.models[type];
+        const rs = byType[type];
+
+        const links = {};
+
+        for (const r of rs) {
+          const { primary: record, linksFn } = resourceToRecord(r, model);
+          const linksByTable = linksFn(r.id);
+
+          for (const table in linksByTable) {
+            if (!links[table]) links[table] = [];
+            links[table].push(...linksByTable[table]);
+
+            const fkCol = model.relationships.find(rel => rel.via && rel.via.table === table).via.fk;
+
+            promises.push(
+              trx(table)
+                .delete()
+                .where(fkCol, '=', r.id)
+            );
+          }
+
+          promises.push(
+            trx(model.table)
+              .where(model.idKey, '=', r.id)
+              .update(record)
+          );
+        }
+
+        for (const table in links) {
+          promises.push(
+            trx
+              .insert(links[table])
+              .into(table)
+          );
+        }
+      }
+
+      return Promise.all(promises);
     });
+
+    const ids = resources.map(r => r.id);
+    const idOrIds = isCollection ? ids : ids[0];
+    const [ primary ] = await this.find(parentType, idOrIds);
+
+    return primary;
   }
 
   async delete(parentType, idOrIds) {
@@ -210,3 +287,16 @@ async function mapResourceTypes(resourceOrCollection, knex, models, fn) {
     ? new Collection(results)
     : results[0];
 }
+
+function combineRecordSets(sets) {
+  const combined = {};
+
+  for (const set of sets) {
+    for (const table in set) {
+      if (!combined[table]) combined[table] = [];
+      combined[table].push(...set[table]);
+    }
+  }
+
+  return combined;
+};

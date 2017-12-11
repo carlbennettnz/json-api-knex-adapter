@@ -57,7 +57,8 @@ describe('integrated update', function() {
       expect(res.body.data.id).to.equal('1');
       expect(res.body.data.attributes.title).to.equal('New Title 1');
       expect(res.body.data.attributes.date).to.exist;
-      expect(res.body.data.relationships).to.not.exist;
+      expect(res.body.data.relationships).to.exist;
+      expect(res.body.data.relationships.tags.data).to.have.lengthOf(2);
     });
 
     it('ignores surplus fields', async function() {
@@ -98,7 +99,8 @@ describe('integrated update', function() {
       expect(res.body.data[0].id).to.equal('1');
       expect(res.body.data[0].attributes.title).to.equal('New Title 1');
       expect(res.body.data[0].attributes.date).to.exist;
-      expect(res.body.data[0].relationships).to.not.exist;
+      expect(res.body.data[0].relationships).to.exist;
+      expect(res.body.data[0].relationships.tags.data).to.have.lengthOf(2);
 
       expect(res.body.data[1].id).to.equal('2');
       expect(res.body.data[1].attributes.title).to.equal('New Title 2');

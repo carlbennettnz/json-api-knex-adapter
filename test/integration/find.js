@@ -3,6 +3,8 @@ const dbHelpers = require('../support/database');
 const request = require('supertest');
 const { expect } = require('chai');
 
+/* eslint-disable max-nested-callbacks */
+
 describe('integrated find', function() {
   let app, db;
 
@@ -89,8 +91,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data[0].attributes.title).to.equal('Post 1');
-        expect(res.body.data[1].attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
       });
 
       it('applies $nin filters', async function() {
@@ -124,8 +126,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data[0].attributes.title).to.equal('Post 1');
-        expect(res.body.data[1].attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
       });
 
       it('applies $gt filters', async function() {
@@ -136,8 +138,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data[0].attributes.title).to.equal('Post 4');
-        expect(res.body.data[1].attributes.title).to.equal('Post 3');
+        expect(res.body.data.find(r => r.id === '3').attributes.title).to.equal('Post 4');
+        expect(res.body.data.find(r => r.id === '4').attributes.title).to.equal('Post 3');
       });
 
       it('applies $gte filters', async function() {
@@ -148,9 +150,9 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(3);
 
-        expect(res.body.data[0].attributes.title).to.equal('Post 2');
-        expect(res.body.data[1].attributes.title).to.equal('Post 4');
-        expect(res.body.data[2].attributes.title).to.equal('Post 3');
+        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '3').attributes.title).to.equal('Post 4');
+        expect(res.body.data.find(r => r.id === '4').attributes.title).to.equal('Post 3');
       });
 
       it('applies $eq filters', async function() {
@@ -172,9 +174,9 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(3);
 
-        expect(res.body.data[0].attributes.title).to.equal('Post 1');
-        expect(res.body.data[1].attributes.title).to.equal('Post 4');
-        expect(res.body.data[2].attributes.title).to.equal('Post 3');
+        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '3').attributes.title).to.equal('Post 4');
+        expect(res.body.data.find(r => r.id === '4').attributes.title).to.equal('Post 3');
       });
 
       it('applies ordinal operators to dates', async function() {
@@ -185,8 +187,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data[0].attributes.title).to.equal('Post 1');
-        expect(res.body.data[1].attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
       });
 
       // To match resapi-mongoose
