@@ -136,7 +136,7 @@ module.exports.joinLinkedRelationships = function joinLinkedRelationships(knex, 
   if (linkedRels.length !== 0) {
     for (const rel of linkedRels) {
       query = query
-        .select(knex.raw(`array_agg("${rel.via.table}"."${rel.via.pk}"::text) as "${rel.key}"`))
+        .select(knex.raw(`array_agg(distinct "${rel.via.table}"."${rel.via.pk}"::text) as "${rel.key}"`))
         .leftJoin(
           rel.via.table,
           `${model.table}.${model.idKey}`,

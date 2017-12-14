@@ -298,10 +298,21 @@ describe('integrated find', function() {
       expect(winner.id).to.equal('000000000000000000000001');
       expect(runnerUp.id).to.equal('000000000000000000000002');
       expect(winnerTags).to.have.lengthOf(2);
-      expect(runnerUpTags).to.have.lengthOf(2);
+      expect(runnerUpTags).to.have.lengthOf(1);
       expect(winnerTagIds).to.include('000000000000000000000001');
       expect(winnerTagIds).to.include('000000000000000000000002');
       expect(runnerUpTags[0].id).to.equal('000000000000000000000002');
+    });
+
+    it('includes linked one-to-many relationships', async function() {
+      const res = await request(app)
+        .get('/posts/000000000000000000000001')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { data: comments } = res.body.data.relationships.comments;
+
+      expect(comments).to.have.lengthOf(3);
     });
   });
 
