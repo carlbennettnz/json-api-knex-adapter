@@ -24,7 +24,9 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
   }
 
   for (const sort of sortObjs) {
-    query = query.orderBy(sort.attr, sort.dir);
+    const rel = model.relationships.find(r => r.key === sort.attr);
+    const table = rel && rel.via ? rel.via.table : model.table;
+    query = query.orderBy(`${table}.${sort.attr}`, sort.dir);
   }
 
   return query;

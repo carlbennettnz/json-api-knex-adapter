@@ -54,9 +54,9 @@ module.exports = class PostgresAdapter {
     let included = new Collection([]);
 
     if (singular) {
-      query = query.where(model.idKey, idOrIds);
+      query = query.where(`${model.table}.${model.idKey}`, idOrIds);
     } else if (idOrIds) {
-      query = query.whereIn(model.idKey, idOrIds);
+      query = query.whereIn(`${model.table}.${model.idKey}`, idOrIds);
     }
 
     if (!singular && filters != null) {
