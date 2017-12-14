@@ -52,10 +52,10 @@ describe('integrated find', function() {
 
       expect(res.body.data).to.have.lengthOf(4);
 
-      expect(res.body.data[0].id).to.equal('3');
-      expect(res.body.data[1].id).to.equal('4');
-      expect(res.body.data[2].id).to.equal('2');
-      expect(res.body.data[3].id).to.equal('1');
+      expect(res.body.data[0].id).to.equal('000000000000000000000003');
+      expect(res.body.data[1].id).to.equal('000000000000000000000004');
+      expect(res.body.data[2].id).to.equal('000000000000000000000002');
+      expect(res.body.data[3].id).to.equal('000000000000000000000001');
     });
 
     it.skip('populates relationships with include', async function() {
@@ -68,7 +68,7 @@ describe('integrated find', function() {
       expect(res.body.data).to.have.lengthOf(4);
       expect(res.body.included).to.have.lengthOf(1);
 
-      expect(res.body.included[0].attributes.id).to.equal('1');
+      expect(res.body.included[0].attributes.id).to.equal('000000000000000000000001');
     });
 
     describe('filters', function() {
@@ -91,8 +91,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
-        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000001').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
       });
 
       it('applies $nin filters', async function() {
@@ -126,8 +126,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
-        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000001').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
       });
 
       it('applies $gt filters', async function() {
@@ -138,8 +138,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data.find(r => r.id === '3').attributes.title).to.equal('Post 4');
-        expect(res.body.data.find(r => r.id === '4').attributes.title).to.equal('Post 3');
+        expect(res.body.data.find(r => r.id === '000000000000000000000003').attributes.title).to.equal('Post 4');
+        expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
       it('applies $gte filters', async function() {
@@ -150,9 +150,9 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(3);
 
-        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
-        expect(res.body.data.find(r => r.id === '3').attributes.title).to.equal('Post 4');
-        expect(res.body.data.find(r => r.id === '4').attributes.title).to.equal('Post 3');
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000003').attributes.title).to.equal('Post 4');
+        expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
       it('applies $eq filters', async function() {
@@ -174,9 +174,9 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(3);
 
-        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
-        expect(res.body.data.find(r => r.id === '3').attributes.title).to.equal('Post 4');
-        expect(res.body.data.find(r => r.id === '4').attributes.title).to.equal('Post 3');
+        expect(res.body.data.find(r => r.id === '000000000000000000000001').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '000000000000000000000003').attributes.title).to.equal('Post 4');
+        expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
       it('applies ordinal operators to dates', async function() {
@@ -187,8 +187,8 @@ describe('integrated find', function() {
 
         expect(res.body.data).to.have.lengthOf(2);
 
-        expect(res.body.data.find(r => r.id === '1').attributes.title).to.equal('Post 1');
-        expect(res.body.data.find(r => r.id === '2').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000001').attributes.title).to.equal('Post 1');
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
       });
 
       // To match resapi-mongoose
@@ -219,72 +219,72 @@ describe('integrated find', function() {
   describe('single resources', function() {
     it('uses types correctly', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/posts/000000000000000000000001')
         .accept('application/vnd.api+json')
         .expect(200);
 
-      expect(res.body.data.id).to.equal('1');
+      expect(res.body.data.id).to.equal('000000000000000000000001');
       expect(res.body.data.type).to.equal('posts');
     });
 
     it('filters fields', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/posts/000000000000000000000001')
         .query({ fields: { posts: 'title' } })
         .accept('application/vnd.api+json')
         .expect(200);
 
-      expect(res.body.data.id).to.equal('1');
+      expect(res.body.data.id).to.equal('000000000000000000000001');
       expect(res.body.data.attributes.title).to.exist;
       expect(res.body.data.attributes.date).to.not.exist;
     });
 
     it('ignores sorts', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/posts/000000000000000000000001')
         .query({ sort: '-title,id' })
         .accept('application/vnd.api+json')
         .expect(200);
 
-      expect(res.body.data.id).to.equal('1');
+      expect(res.body.data.id).to.equal('000000000000000000000001');
     });
 
     it('ignores filters', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/posts/000000000000000000000001')
         .query('filter[simple][title]', 'xyz')
         .accept('application/vnd.api+json')
         .expect(200);
 
-      expect(res.body.data.id).to.equal('1');
+      expect(res.body.data.id).to.equal('000000000000000000000001');
     });
 
     it('includes all attributes', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/posts/000000000000000000000001')
         .accept('application/vnd.api+json')
         .expect(200);
 
       const { attributes } = res.body.data;
 
       expect(attributes.title).to.equal('Post 1');
-      expect(attributes.date).to.equal('2017-05-31T12:00:00.000Z');
+      expect(attributes.date).includes('2017-06-01');
     });
 
     it('includes all local relationships', async function() {
       const res = await request(app)
-        .get('/posts/1')
+        .get('/posts/000000000000000000000001')
         .accept('application/vnd.api+json')
         .expect(200);
 
       const { data: author } = res.body.data.relationships.author;
 
-      expect(author.id).to.equal('1');
+      expect(author.id).to.equal('000000000000000000000001');
     });
 
     it('includes all linked relationships', async function() {
       const res = await request(app)
-        .get('/awards/1')
+        .get('/awards/000000000000000000000001')
         .accept('application/vnd.api+json')
         .expect(200);
 
@@ -295,13 +295,13 @@ describe('integrated find', function() {
 
       const winnerTagIds = winnerTags.map(t => t.id);
 
-      expect(winner.id).to.equal('1');
-      expect(runnerUp.id).to.equal('2');
+      expect(winner.id).to.equal('000000000000000000000001');
+      expect(runnerUp.id).to.equal('000000000000000000000002');
       expect(winnerTags).to.have.lengthOf(2);
       expect(runnerUpTags).to.have.lengthOf(2);
-      expect(winnerTagIds).to.include('1');
-      expect(winnerTagIds).to.include('2');
-      expect(runnerUpTags[0].id).to.equal('2');
+      expect(winnerTagIds).to.include('000000000000000000000001');
+      expect(winnerTagIds).to.include('000000000000000000000002');
+      expect(runnerUpTags[0].id).to.equal('000000000000000000000002');
     });
   });
 
@@ -317,7 +317,7 @@ describe('integrated find', function() {
       expect(res.body.included).to.have.lengthOf(1);
 
       expect(res.body.included[0].type).to.equal('authors');
-      expect(res.body.included[0].id).to.equal('1');
+      expect(res.body.included[0].id).to.equal('000000000000000000000001');
     });
 
     it('populates linked relationships', async function() {

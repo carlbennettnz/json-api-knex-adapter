@@ -4,6 +4,7 @@
   "description": "Postgres adapter for resapi",
   "main": "src/postgres-adapter.js",
   "scripts": {
+    "pretest": "knex migrate:latest",
     "test": "NODE_ENV=test mocha --recursive test/unit test/integration"
   },
   "author": "Out There Business Solutions",

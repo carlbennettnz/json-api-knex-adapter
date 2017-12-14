@@ -80,7 +80,7 @@ describe('find', function() {
 
   it('filters by id array', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.whereIn('_id', ['1', '2'])).thenReturn(knex);
+    td.when(knex.whereIn('post._id', ['1', '2'])).thenReturn(knex);
     td.when(knex.select('post.*')).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', ['1', '2'], null, null, null, null);
@@ -98,7 +98,7 @@ describe('find', function() {
 
   it('finds a specific id', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.where('_id', '1')).thenReturn(knex);
+    td.when(knex.where('post._id', '1')).thenReturn(knex);
     td.when(knex.select('post.*')).thenResolve(POSTS.slice(0, 1));
 
     const [ primary, included ] = await adapter.find('posts', '1', null, null, null, null);
@@ -173,7 +173,7 @@ describe('find', function() {
   it('sorts the results', async function() {
     td.when(knex.from('post')).thenReturn(knex);
     td.when(knex.select('post.*')).thenReturn(knex);
-    td.when(knex.orderBy('_id', 'desc')).thenResolve([ POSTS[1], POSTS[0] ]);
+    td.when(knex.orderBy('post._id', 'desc')).thenResolve([ POSTS[1], POSTS[0] ]);
 
     const [ primary, included ] = await adapter.find('posts', null, null, [ '-id' ], null, null);
 
@@ -204,8 +204,8 @@ describe('find', function() {
   it('applies all sorts in order', async function() {
     td.when(knex.from('post')).thenReturn(knex);
     td.when(knex.select('post.*')).thenReturn(knex);
-    td.when(knex.orderBy('title', 'asc')).thenReturn(knex);
-    td.when(knex.orderBy('_id', 'desc')).thenResolve(POSTS);
+    td.when(knex.orderBy('post.title', 'asc')).thenReturn(knex);
+    td.when(knex.orderBy('post._id', 'desc')).thenResolve(POSTS);
 
     const [ primary, included ] = await adapter.find('posts', null, null, [ 'title', '-id' ], null, null);
 
@@ -290,7 +290,7 @@ describe('find', function() {
 
   it('throws 404 if no resources match a specific id', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.where('_id', '123')).thenReturn(knex);
+    td.when(knex.where('post._id', '123')).thenReturn(knex);
     td.when(knex.select('post.*')).thenResolve([]);
 
     try {
@@ -306,7 +306,7 @@ describe('find', function() {
 
   it('throws 404 if no resources match a specific id', async function() {
     td.when(knex.from('post')).thenReturn(knex);
-    td.when(knex.where('_id', '123')).thenReturn(knex);
+    td.when(knex.where('post._id', '123')).thenReturn(knex);
     td.when(knex.select('post.*')).thenResolve([]);
 
     try {

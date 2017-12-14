@@ -20,12 +20,15 @@ function database(knex) {
   }
 
   async function clear() {
-    return Promise.all([
-      knex.raw(`truncate post restart identity cascade`),
-      knex.raw(`truncate author restart identity cascade`),
-      knex.raw(`truncate tag restart identity cascade`),
-      knex.raw(`truncate post_tag restart identity cascade`)
-    ]);
+    const tables = await knex
+      .from('pg_catalog.pg_tables')
+      .select('tablename as table')
+      .where('schemaname', 'public')
+      .where('tablename', 'NOT LIKE', 'knex_%');
+
+    const tableNames = tables.map(t => `"${t.table}"`);
+
+    await knex.raw(`TRUNCATE ${tableNames.join(', ')} CASCADE`);
   }
 
   async function close() {

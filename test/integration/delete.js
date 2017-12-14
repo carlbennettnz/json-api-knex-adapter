@@ -15,18 +15,21 @@ describe('integrated delete', function() {
 
   describe('single resources', function() {
     it('deletes the resource and returns 204', async function() {
+      const [ { count: precount } ] = await knex('post').count('*').where('_id', '000000000000000000000001');
+
       await request(app)
-        .delete('/posts/1')
+        .delete('/posts/000000000000000000000001')
         .expect(204);
 
-      const [ { count } ] = await knex('post').count('*').where('_id', 1);
+      const [ { count: postcount } ] = await knex('post').count('*').where('_id', '000000000000000000000001');
 
-      expect(count).to.equal('0');
+      expect(precount).to.equal('1');
+      expect(postcount).to.equal('0');
     });
 
     it('fails to delete missing resource', async function() {
       const res = await request(app)
-        .delete('/posts/10')
+        .delete('/posts/000000000000000000000999')
         .expect(404);
 
       expect(res.body.errors[0].title).to.equal('No matching resource found');

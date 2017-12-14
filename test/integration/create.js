@@ -3,10 +3,12 @@ const dbHelpers = require('../support/database');
 const request = require('supertest');
 const { expect } = require('chai');
 
+const OBJECT_ID_REGEX = /^[0-9a-f]{24}$/;
+
 const POSTS = [{
   type: 'posts',
   attributes: { title: 'Post 5', date: new Date('2017-10-15') },
-  relationships: { author: { data: { id: '1', type: 'authors' } } }
+  relationships: { author: { data: { id: '000000000000000000000001', type: 'authors' } } }
 }, {
   type: 'posts',
   attributes: { title: 'Post 6', date: new Date('2017-10-15') }
@@ -14,13 +16,13 @@ const POSTS = [{
   type: 'posts',
   attributes: { title: 'Post 5', date: new Date('2017-10-15') },
   relationships: {
-    author: { data: { id: '1', type: 'authors' } },
-    tags: { data: [ { id: '1', type: 'tags' } ] }
+    author: { data: { id: '000000000000000000000001', type: 'authors' } },
+    tags: { data: [ { id: '000000000000000000000001', type: 'tags' } ] }
   }
 }];
 const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
   type: 'posts',
-  relationships: { author: { data: { id: '999', type: 'authors' } } }
+  relationships: { author: { data: { id: '000000000000000000000999', type: 'authors' } } }
 } ];
 
 describe('integrated create', function() {
@@ -41,11 +43,9 @@ describe('integrated create', function() {
         .send({ data: POSTS[0] })
         .expect(201);
 
-      const [ post ] = await knex('post').where('_id', '=', 5);
+      const [ { count } ] = await knex('post').count();
 
-      expect(post).to.exist;
-      expect(post.title).to.equal('Post 5');
-      expect(post.author).to.equal(1);
+      expect(count).to.equal('5');
     });
 
     it('returns the resources', async function() {
@@ -55,7 +55,7 @@ describe('integrated create', function() {
         .send({ data: POSTS[0] })
         .expect(201);
 
-      expect(res.body.data.id).to.equal('5');
+      expect(res.body.data.id).to.match(OBJECT_ID_REGEX);
       expect(res.body.data.attributes.title).to.equal('Post 5');
       expect(res.body.data.attributes.date).to.exist;
       expect(res.body.data.relationships.author).to.exist;
@@ -99,15 +99,9 @@ describe('integrated create', function() {
         .send({ data: POSTS })
         .expect(201);
 
-      const [ post1, post2 ] = await knex('post').where('_id', '>=', 5).orderBy('_id');
+      const [ { count } ] = await knex('post').count();
 
-      expect(post1).to.exist;
-      expect(post1.title).to.equal('Post 5');
-      expect(post1.author).to.equal(1);
-
-      expect(post2).to.exist;
-      expect(post2.title).to.equal('Post 6');
-      expect(post2.author).to.equal(null);
+      expect(count).to.equal('7');
     });
 
     it('returns the resources', async function() {
@@ -117,12 +111,12 @@ describe('integrated create', function() {
         .send({ data: POSTS })
         .expect(201);
 
-      expect(res.body.data[0].id).to.equal('5');
+      expect(res.body.data[0].id).to.match(OBJECT_ID_REGEX);
       expect(res.body.data[0].attributes.title).to.equal('Post 5');
       expect(res.body.data[0].attributes.date).to.exist;
       expect(res.body.data[0].relationships.author).to.exist;
 
-      expect(res.body.data[1].id).to.equal('6');
+      expect(res.body.data[1].id).to.match(OBJECT_ID_REGEX);
       expect(res.body.data[1].attributes.title).to.equal('Post 6');
       expect(res.body.data[1].attributes.date).to.exist;
       expect(res.body.data[1].relationships).to.not.exist;

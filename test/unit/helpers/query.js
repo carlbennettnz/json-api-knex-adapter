@@ -252,7 +252,7 @@ describe('query helpers', function() {
 
       const x = Symbol('x');
       const y = Symbol('y');
-      td.when(knex.raw('array_agg("f_table"."f_field") as "l_key"')).thenReturn(x);
+      td.when(knex.raw('array_agg("f_table"."f_field"::text) as "l_key"')).thenReturn(x);
       td.when(query.select(x)).thenReturn(query);
       td.when(query.leftJoin('f_table', 'l_table.l_id', 'f_table.f_key')).thenReturn(query);
       td.when(query.groupBy('l_table.l_id')).thenReturn(y);

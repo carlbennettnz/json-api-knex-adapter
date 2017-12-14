@@ -15,7 +15,8 @@ const models = {
     attrs: [ 'title', 'date' ],
     relationships: [
       { type: 'authors', key: 'author' },
-      { type: 'tags', key: 'tags', via: { table: 'post_tag', fk: 'post', pk: 'tag' } }
+      { type: 'tags', key: 'tags', via: { table: 'post_tag', fk: 'post', pk: 'tag' } },
+      { type: 'comments', key: 'comments', via: { table: 'comment', fk: 'post', pk: '_id' } }
     ]
   },
 
@@ -31,6 +32,13 @@ const models = {
     idKey: '_id',
     attrs: [ 'name' ],
     relationships: []
+  },
+
+  comments: {
+    table: 'comment',
+    idKey: '_id',
+    attrs: [ 'content' ],
+    relationships: [ { key: 'post', type: 'posts' } ]
   },
 
   awards: {
