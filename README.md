@@ -57,8 +57,8 @@ module.exports = {
         key: 'favouriteOf',
         via: {
           table: 'reader',
-          on: 'favouritePost',
-          aggregating: '_id'
+          fk: 'favouritePost',
+          pk: '_id'
         }
       },
 
