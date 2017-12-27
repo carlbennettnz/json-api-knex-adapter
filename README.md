@@ -68,6 +68,9 @@ module.exports = {
 }
 ```
 
-## Tests
+## Future Plans
 
-There are plenty of tests written, but currently the integration tests won't work unless you have your database configured exactly like mine. I'm working on a knex migration that will automatically set everything up.
+* **Infer models at runtime from the database structure.** Most of the data that currently needs to be passed in is unnecessary. A simple list of tables and to-many relationships to expose is all that I can think of that would still be needed.
+* **Refactor the helpers folder**. It was originally supposed to be a small set of utility funcations, but a decent chuck of the logic is now in there.
+* **Generalize for public use.** There are a few things in here that are specific to us/Postgres. They should be removed or at least documented.
+* **Get it working with JSON API v3**. Shouldn't be much work. The API is the same AFAIK.
