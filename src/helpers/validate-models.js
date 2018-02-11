@@ -182,7 +182,7 @@ function validateRelationships(model, modelName) {
 function validateRepeatedKeys(model, modelName) {
   const keys = [];
 
-  keys.push(model.idKey || 'id');
+  // Don't include the idKey, as this is allowed to be repeated, usually in a one-to-one relationship
 
   if ('attrs' in model) {
     keys.push(...model.attrs.map(attr => typeof attr === 'string' ? attr : attr.key));

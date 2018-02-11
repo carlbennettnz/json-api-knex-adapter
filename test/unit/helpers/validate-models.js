@@ -182,8 +182,11 @@ describe('validate models', function() {
       const msg = `Property name 'x' is repeated.`;
       expect(() => validate({ table, attrs: [ 'x' ], relationships: [ { key: 'x', type: 'y' } ] })).to.throw(msg);
       expect(() => validate({ table, attrs: [ { key: 'x' } ], relationships: [ { key: 'x', type: 'y' } ] })).to.throw(msg);
-      expect(() => validate({ table, idKey: 'x', attrs: [ 'x' ] })).to.throw(msg);
-      expect(() => validate({ table, idKey: 'x', relationships: [ { key: 'x', type: 'y' } ] })).to.throw(msg);
+    });
+
+    it('allows idKey to be repeated as an attr or relationship', function() {
+      expect(() => validate({ table, idKey: 'x', attrs: [ 'x' ] })).to.not.throw();
+      expect(() => validate({ table, idKey: 'x', relationships: [ { key: 'x', type: 'y' } ] })).to.not.throw();
     });
   });
 });
