@@ -9,7 +9,8 @@ const ALLOWED_ATTR_PROPS = [
 const ALLOWED_REL_PROPS = [
   'key',
   'type',
-  'via'
+  'via',
+  'relType'
 ];
 
 const ALLOWED_REL_VIA_PROPS = [

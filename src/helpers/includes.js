@@ -107,7 +107,19 @@ function validatePaths(paths, rels) {
 }
 
 /**
- * Gets a query returning a single column of ids at the other end of a linked relationship.
+ * Gets a query returning a single column of ids at the other end of a linked relationship. If we're including a set of posts' authors, the
+ * final query will end up looking something like this:
+ *
+ *   SELECT author._id AS author
+ *   FROM post
+ *   LEFT JOIN author ON author._id = post.author
+ *   WHERE post.date > '2017-01-01'
+ *
+ * This can then be used in the actual authors query to filter the authors by _id, like this:
+ *
+ *   SELECT *
+ *   FROM author
+ *   WHERE _id IN <the query returned by this method>
  *
  * @param  {Knex}         knex  Knex instance.
  * @param  {QueryBuilder} query Knex query with where clauses already applied.

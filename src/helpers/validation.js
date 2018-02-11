@@ -1,4 +1,5 @@
 const { resourceToRecord } = require('./result-types');
+const APIError = require('resapi').types.Error;
 
 function validateResources(resources, models) {
   const errors = [];
@@ -35,4 +36,49 @@ function validateResources(resources, models) {
   }
 }
 
+/**
+ * There are many complex API design trade-offs around how to handle changes to one-to-many relationships. For example, if an ID is removed
+ * from a to-many data array, what should happen to the newly orphaned foreign resource? As a result of issues like this, updates to
+ * one-to-many relationships have been disallowed completely. This function checks they are not present in the provided resources, and
+ * throws an array of APIErrors otherwise.
+ *
+ * @param  {Resource[]} resources The resources to check.
+ * @param  {Object}     models    The model definitions.
+ * @return {void}
+ * @throws {APIError[]} If one-to-many relationships are found.
+ */
+function ensureOneToManyRelsAreNotPresent(resources, models) {
+  const errors = [];
+
+  for (const res of resources) {
+    const model = models[res.type]; // TODO: Handle missing model
+    const relationships = model.relationships
+      .filter(r => r.relType === 'ONE_TO_MANY')
+      .map(r => r.key);
+
+    for (const relKey of relationships) {
+      if (res.relationships[relKey]) {
+        const error = new APIError(
+          403,
+          null,
+          'Illegal update to one-to-many relationship',
+          'There are many complex API design trade-offs around how to handle changes to one-to-many relationships. For example, if an ID '
+            + 'is removed from a to-many data array, what should happen to the newly orphaned foreign resource? As a result of issues '
+            + 'like this, updates to one-to-many relationships have been disallowed completely. Please do not include one-to-many '
+            + 'relationships in POST and PATCH requests.',
+          null,
+          { pointer: `/data/${resources.indexOf(res)}/relationships/${relKey}` }
+        );
+
+        errors.push(error);
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw errors;
+  }
+}
+
 module.exports.validateResources = validateResources;
+module.exports.ensureOneToManyRelsAreNotPresent = ensureOneToManyRelsAreNotPresent;

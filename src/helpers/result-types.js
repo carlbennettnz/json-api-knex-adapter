@@ -66,12 +66,16 @@ function resourceToRecord(resource, model, { stringifyObjects = true } = {}) {
       : null;
   }
 
+  // The linking records depend on the primary resource's ID, so we return a function that can be used to generate these once it is known
   const linksFn = primaryId => {
     const links = {};
 
-    for (const rel of model.relationships.filter(rel => 'via' in rel)) {
-      if (!resource.relationships[rel.key] || resource.relationships[rel.key].linkage.value.length === 0) continue;
+    for (const rel of model.relationships.filter(rel => rel.relType === 'MANY_TO_MANY')) {
+      // An empty array here is distinct from a missing relationship. Empty arrays indicate that the existing relationships should be
+      // removed, whereas a missing key indicates that no change should be made.
+      if (!resource.relationships[rel.key]) continue;
 
+      // Map the resource's relationship sturcture to an array of values to be inserted into a linking table
       links[rel.via.table] = resource.relationships[rel.key].linkage.value
         .map(linkage => linkage.id)
         .map(id => ({ [rel.via.pk]: id, [rel.via.fk]: primaryId }));

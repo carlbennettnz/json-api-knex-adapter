@@ -24,7 +24,9 @@ const models = {
     table: 'author',
     idKey: '_id',
     attrs: [ 'name' ],
-    relationships: []
+    relationships: [
+      { type: 'posts', key: 'posts', via: { table: 'posts', pk: '_id', fk: 'author' } }
+    ]
   },
 
   tags: {

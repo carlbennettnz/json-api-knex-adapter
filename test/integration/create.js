@@ -24,6 +24,10 @@ const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
   type: 'posts',
   relationships: { author: { data: { id: '000000000000000000000999', type: 'authors' } } }
 } ];
+const POST_WITH_COMMENTS = {
+  type: 'posts',
+  relationships: { comments: { data: [{ id: '000000000000000000000999', type: 'comments' }] } }
+};
 
 describe('integrated create', function() {
   let app, knex, db;
@@ -88,6 +92,26 @@ describe('integrated create', function() {
         .expect(201);
 
       expect(result.body.data.relationships.tags).to.not.exist;
+    });
+
+    it('forbids the creation of a resource with a one-to-many relationship', async function() {
+      const countPosts = () => knex('post').count().then(r => Number(r[0].count));
+
+      const preCount = await countPosts();
+
+      const result = await request(app)
+        .post('/posts')
+        .type('application/vnd.api+json')
+        .send({ data: POST_WITH_COMMENTS })
+        .expect(403);
+
+      expect(result.body.errors).to.have.lengthOf(1);
+      expect(result.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
+      expect(result.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
+
+      const postCount = await countPosts();
+
+      expect(postCount).to.equal(preCount, 'no post added');
     });
   });
 

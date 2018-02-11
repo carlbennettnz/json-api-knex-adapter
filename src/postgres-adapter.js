@@ -4,7 +4,7 @@ const { applySorts, applyFilters, applyFieldFilter, joinLinkedRelationships } = 
 const getIncludedResources = require('./helpers/includes');
 const { handleQueryError, handleSaveError } = require('./helpers/errors');
 const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
-const { validateResources } = require('./helpers/validation');
+const { validateResources, ensureOneToManyRelsAreNotPresent } = require('./helpers/validation');
 const formatQuery = require('./helpers/format-query');
 const debug = require('debug')('resapi:pg');
 const validateModels = require('./helpers/validate-models');
@@ -123,6 +123,8 @@ module.exports = class PostgresAdapter {
           Object.keys(links).map(table => {
             const records = links[table];
 
+            if (records.length === 0) return [];
+
             return trx
               .insert(records)
               .into(table)
@@ -132,7 +134,7 @@ module.exports = class PostgresAdapter {
         ).then(results => [].concat(...results));
 
         for (const record of primarySaved) {
-          for (const rel of model.relationships.filter(rel => 'via' in rel)) {
+          for (const rel of model.relationships.filter(rel => rel.relType === 'MANY_TO_MANY')) {
             const savedToTable = linksSaved.find(l => l.table === rel.via.table);
 
             if (savedToTable == null) continue;
@@ -169,6 +171,7 @@ module.exports = class PostgresAdapter {
       : [ resourceOrCollection ];
 
     validateResources(resources, this.models);
+    ensureOneToManyRelsAreNotPresent(resources, this.models);
 
     const byType = groupBy(resources, r => r.type);
 
@@ -198,11 +201,13 @@ module.exports = class PostgresAdapter {
             );
           }
 
-          promises.push(
-            trx(model.table)
-              .where(model.idKey, '=', r.id)
-              .update(record)
-          );
+          if (Object.keys(record).length > 0) {
+            promises.push(
+              trx(model.table)
+                .where(model.idKey, '=', r.id)
+                .update(record)
+            );
+          }
         }
 
         for (const table in links) {
@@ -275,6 +280,7 @@ async function mapResourceTypes(resourceOrCollection, knex, models, fn) {
     : [ resourceOrCollection ];
 
   validateResources(resources, models);
+  ensureOneToManyRelsAreNotPresent(resources, models);
 
   const byType = groupBy(resources, r => r.type);
 

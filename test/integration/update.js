@@ -18,6 +18,17 @@ const POSTS_WITH_BAD_AUTHOR = [ ...POSTS, {
   type: 'posts',
   relationships: { author: { data: { id: '999', type: 'authors' } } }
 } ];
+const POSTS_WITH_REL_UPDATES = [{
+  id: '000000000000000000000001',
+  type: 'posts',
+  attributes: {},
+  relationships: { tags: { data: [] } }
+}, {
+  id: '000000000000000000000001',
+  type: 'posts',
+  attributes: {},
+  relationships: { comments: { data: [] } }
+}];
 
 describe('integrated update', function() {
   let app, knex, db;
@@ -67,6 +78,40 @@ describe('integrated update', function() {
         .type('application/vnd.api+json')
         .send({ data: { ...POSTS[0], abc: 123 } })
         .expect(200);
+    });
+
+    it('updates many-to-many relationships', async function() {
+      const [ { count: preCount } ] = await knex('post_tag').where('post', '=', '000000000000000000000001').count();
+
+      await request(app)
+        .patch('/posts/000000000000000000000001')
+        .type('application/vnd.api+json')
+        .send({ data: POSTS_WITH_REL_UPDATES[0] })
+        .expect(200);
+
+      const [ { count: postCount } ] = await knex('post_tag').where('post', '=', '000000000000000000000001').count();
+
+      expect(preCount).to.equal('2');
+      expect(postCount).to.equal('0');
+    });
+
+    it('gives 403 forbidden when a user attempts to update one-to-many relationships', async function() {
+      const [ { count: preCount } ] = await knex('comment').where('post', '=', '000000000000000000000001').count();
+
+      const res = await request(app)
+        .patch('/posts/000000000000000000000001')
+        .type('application/vnd.api+json')
+        .send({ data: POSTS_WITH_REL_UPDATES[1] })
+        .expect(403);
+
+      expect(res.body.errors).to.have.lengthOf(1);
+      expect(res.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
+      expect(res.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
+
+      const [ { count: postCount } ] = await knex('comment').where('post', '=', '000000000000000000000001').count();
+
+      expect(preCount).to.equal('3');
+      expect(postCount).to.equal('3');
     });
   });
 

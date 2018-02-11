@@ -1,5 +1,6 @@
 function normalizeModels(models) {
   const normalizedModels = {};
+  const modelTables = Object.values(models).map(model => model.table);
 
   for (const type in models) {
     const model = models[type];
@@ -8,7 +9,7 @@ function normalizeModels(models) {
       table: model.table,
       idKey: normalizeIdKey(model.idKey),
       attrs: normalizeAttrs(model.attrs),
-      relationships: normalizeRelationships(model.relationships)
+      relationships: normalizeRelationships(model.relationships, modelTables)
     };
 
     normalizedModels[type] = normalizedModel;
@@ -49,17 +50,40 @@ function normalizeAttrs(attrs) {
   return normalizedAttrs;
 }
 
-function normalizeRelationships(rels) {
+/**
+ * Ensures models match the required format, and also attempts to automatically determine each relationship's relType. If a relType is
+ * provided, we just use that. Otherwise, if rel.via.table is a table we have defined as a model, we assume the relationship is
+ * ONE_TO_MANY. If the table isn't known, but the relationship is linked, we assume MANY_TO_MANY. If the relationship isn't linked,
+ * we assume MANY_TO_ONE.
+ *
+ * @param  {Object[]} rels        The relationships array for a model.
+ * @param  {String[]} modelTables The names of the tables of the defined models, including the model of these relationships.
+ * @return {Object[]}             Normalized relationships.
+ */
+function normalizeRelationships(rels, modelTables) {
   const normalizedRels = [];
 
   for (const rel of rels || []) {
     const normalizedRel = {
       key: rel.key,
-      type: rel.type
+      type: rel.type,
+      relType: null
     };
 
+    // Clone the via object
     if ('via' in rel) {
       normalizedRel.via = { ...rel.via };
+    }
+
+    // Set the relType
+    if (rel.relType) {
+      normalizedRel.relType = rel.relType;
+    } else if ('via' in rel && modelTables.includes(normalizedRel.via.table)) {
+      normalizedRel.relType = 'ONE_TO_MANY';
+    } else if ('via' in rel) {
+      normalizedRel.relType = 'MANY_TO_MANY';
+    } else {
+      normalizedRel.relType = 'MANY_TO_ONE';
     }
 
     normalizedRels.push(normalizedRel);
