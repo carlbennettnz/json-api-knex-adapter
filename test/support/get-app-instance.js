@@ -1,12 +1,12 @@
 const express = require('express');
 const knex = require('knex');
-const PostgresAdapter = require('../../src/postgres-adapter');
+const PostgresAdapter = require('../../src/knex-adapter');
 
 const {
   ResourceTypeRegistry,
   ResourceController,
   types: { APIError }
-} = require('resapi');
+} = require('json-api');
 
 const models = {
   posts: {
@@ -89,7 +89,7 @@ const resourceTypes = {
 const dbConfig = {
   client: 'pg',
   connection: {
-    database: 'resapi_postgres_test'
+    database: 'resapi_knex_test'
   }
 };
 

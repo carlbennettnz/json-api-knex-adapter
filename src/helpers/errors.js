@@ -1,4 +1,4 @@
-const APIError = require('resapi').types.Error;
+const APIError = require('json-api').types.Error;
 
 const NOT_NULL_ERR_COL_NAME = /null value in column "(.+)" violates not-null constraint$/;
 

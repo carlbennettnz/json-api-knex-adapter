@@ -1,19 +1,19 @@
-# Resapi Postgres
+# `json-api-knex-adapter`
 
-A database adapter.
+Serve resources from your SQL database using [`json-api`](https://github.com/ethanresnick/json-api/tree/v3-evolution-over-rewrite).
 
 ## How to Use
 
 ```js
 // index.js
-const { ResourceTypeRegistry, ResourceController } = require('resapi');
-const PostgresAdapter = require('resapi-postgres');
+const { ResourceTypeRegistry, ResourceController } = require('jsonapi');
+const KnexAdapter = require('json-api-knex-adapter');
 const express = require('express');
 const knex = require('knex');
 const models = require('./models');
 
 const connection = knex(config);
-const dbAdapter = new PostgresAdapter(models, connection);
+const dbAdapter = new KnexAdapter(models, connection);
 
 const registry = new ResourceTypeRegistry(resourceTypes, { dbAdapter });
 const resourceController = new ResourceController(registry);

@@ -1,10 +1,10 @@
 const { expect } = require('chai');
-const PostgresAdapter = require('../../src/postgres-adapter');
+const PostgresAdapter = require('../../src/knex-adapter');
 const normalizeModels = require('../../src/helpers/normalize-models');
 const td = require('testdouble');
 const {
   Error: APIError
-} = require('resapi').types;
+} = require('json-api').types;
 
 const models = normalizeModels({
   posts: {

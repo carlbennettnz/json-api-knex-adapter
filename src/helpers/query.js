@@ -1,4 +1,4 @@
-const APIError = require('resapi').types.Error;
+const APIError = require('json-api').types.Error;
 
 module.exports.applySorts = function applySorts(query, sorts, model) {
   const sortObjs = sorts.map(s => ({

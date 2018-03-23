@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const PostgresAdapter = require('../../src/postgres-adapter');
+const PostgresAdapter = require('../../src/knex-adapter');
 const td = require('testdouble');
 const realKnex = require('knex')({ client: 'pg' });
 const normalizeModels = require('../../src/helpers/normalize-models');
@@ -9,7 +9,7 @@ const {
   Resource,
   Linkage,
   Relationship
-} = require('resapi').types;
+} = require('json-api').types;
 
 const models = normalizeModels({
   posts: {

@@ -13,7 +13,7 @@ const normalizeModels = require('./helpers/normalize-models');
 const {
   Collection,
   Error: APIError
-} = require('resapi').types;
+} = require('json-api').types;
 
 module.exports = class PostgresAdapter {
   constructor(models, knex) {

@@ -1,5 +1,5 @@
 const { resourceToRecord } = require('./result-types');
-const APIError = require('resapi').types.Error;
+const APIError = require('json-api').types.Error;
 
 function validateResources(resources, models) {
   const errors = [];

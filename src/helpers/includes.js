@@ -1,4 +1,4 @@
-const { Error: APIError, Collection } = require('resapi').types;
+const { Error: APIError, Collection } = require('json-api').types;
 const _groupBy = require('lodash.groupby');
 const debug = require('debug')('resapi:pg');
 const formatQuery = require('./format-query');

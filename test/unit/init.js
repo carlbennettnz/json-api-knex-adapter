@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const PostgresAdapter = require('../../src/postgres-adapter');
+const PostgresAdapter = require('../../src/knex-adapter');
 
 describe('init', function() {
   // This is just checking that the validation helper is wired up correctly.

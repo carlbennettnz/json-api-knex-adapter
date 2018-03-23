@@ -1,8 +1,8 @@
 {
-  "name": "resapi-postgres",
-  "version": "1.0.0",
-  "description": "Postgres adapter for resapi",
-  "main": "src/postgres-adapter.js",
+  "name": "json-api-knex-adapter",
+  "version": "0.0.0",
+  "description": "Knex adapter for json-api",
+  "main": "src/knex-adapter.js",
   "scripts": {
     "pretest": "knex migrate:latest",
     "test": "NODE_ENV=test mocha --recursive test/unit test/integration"
@@ -22,7 +22,7 @@
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "pg": "^7.3.0",
-    "resapi": "github:outtherenz/resapi",
+    "json-api": "json-api@3.0.0-beta.20",
     "supertest": "^3.0.0",
     "testdouble": "^3.2.6"
   }

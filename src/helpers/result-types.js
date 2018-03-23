@@ -3,7 +3,7 @@ const {
   Resource,
   Linkage,
   Relationship
-} = require('resapi').types;
+} = require('json-api').types;
 
 function recordsToCollection(records, type, model, fields = []) {
   return new Collection(records.map(r => recordToResource(r, type, model, fields)));
