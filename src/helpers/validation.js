@@ -1,7 +1,7 @@
 const { resourceToRecord } = require('./result-types');
 const APIError = require('json-api').types.Error;
 
-function validateResources(resources, models) {
+export function validateResources(resources, models) {
   const errors = [];
 
   for (const res of resources) {
@@ -47,7 +47,7 @@ function validateResources(resources, models) {
  * @return {void}
  * @throws {APIError[]} If one-to-many relationships are found.
  */
-function ensureOneToManyRelsAreNotPresent(resources, models) {
+export function ensureOneToManyRelsAreNotPresent(resources, models) {
   const errors = [];
 
   for (const res of resources) {
@@ -79,6 +79,3 @@ function ensureOneToManyRelsAreNotPresent(resources, models) {
     throw errors;
   }
 }
-
-module.exports.validateResources = validateResources;
-module.exports.ensureOneToManyRelsAreNotPresent = ensureOneToManyRelsAreNotPresent;

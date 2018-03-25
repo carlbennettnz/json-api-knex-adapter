@@ -1,22 +1,30 @@
-const assert = require('assert');
-const groupBy = require('lodash.groupby');
-const { applySorts, applyFilters, applyFieldFilter, joinLinkedRelationships } = require('./helpers/query');
-const getIncludedResources = require('./helpers/includes');
-const { handleQueryError, handleSaveError } = require('./helpers/errors');
-const { recordsToCollection, recordToResource, resourceToRecord } = require('./helpers/result-types');
-const { validateResources, ensureOneToManyRelsAreNotPresent } = require('./helpers/validation');
-const formatQuery = require('./helpers/format-query');
-const debug = require('debug')('resapi:pg');
-const validateModels = require('./helpers/validate-models');
-const normalizeModels = require('./helpers/normalize-models');
+import { strictEqual as assert } from 'assert';
+import groupBy from 'lodash.groupby';
+import * as debugFactory from 'debug';
+import { Error as APIError } from 'json-api'
+import * as client from 'knex'
 
-const {
-  Collection,
-  Error: APIError
-} = require('json-api').types;
+import { handleQueryError, handleSaveError } from './helpers/errors';
+import { recordsToCollection, recordToResource, resourceToRecord } from './helpers/result-types';
+import { validateResources, ensureOneToManyRelsAreNotPresent } from './helpers/validation';
+import formatQuery from './helpers/format-query';
+import getIncludedResources from './helpers/includes'
+import validateModels from './helpers/validate-models';
+import normalizeModels from './helpers/normalize-models';
+import {
+  applySorts,
+  applyFilters,
+  applyFieldFilter,
+  joinLinkedRelationships
+} from './helpers/query';
 
-module.exports = class PostgresAdapter {
-  constructor(models, knex) {
+const debug = debugFactory('resapi:pg');
+
+export default class PostgresAdapter {
+  models: any
+  knex: any
+
+  constructor(models: any, knex: client) {
     validateModels(models);
     const normalizedModels = normalizeModels(models);
 
@@ -46,7 +54,7 @@ module.exports = class PostgresAdapter {
    *                                             option. This should be a single array, not separated by resource type
    *                                             or the key through which the resource was included.
    */
-  async find(type, idOrIds, fields, sorts, filters, includePaths) {
+  async find(type, idOrIds?, fields?, sorts?, filters?, includePaths?) {
     const model = this.models[type];
     const primaryFields = fields != null && fields[type] != null ? fields[type] : [];
     let query = this.knex.from(model.table);

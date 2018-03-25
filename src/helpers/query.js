@@ -1,6 +1,6 @@
 const APIError = require('json-api').types.Error;
 
-module.exports.applySorts = function applySorts(query, sorts, model) {
+export function applySorts(query, sorts, model) {
   const sortObjs = sorts.map(s => ({
     // Replace `'id'` with the `idKey`
     attr: /^-?id$/.test(s) ? model.idKey : s.replace(/^-/, ''),
@@ -40,7 +40,7 @@ module.exports.applySorts = function applySorts(query, sorts, model) {
  * @param  {Object} filters [MongoDB query](https://docs.mongodb.com/manual/reference/operator/query/).
  * @return {Query}          Knex query with filters applied.
  */
-module.exports.applyFilters = function applyFilters(query, model, filters) {
+export function applyFilters(query, model, filters) {
   if (typeof filters !== 'object' || Array.isArray(filters)) {
     throw new APIError(400, undefined, 'Bad filter', 'Filters must be an object.');
   }
@@ -107,7 +107,7 @@ function applyComparisonOperators(query, key, obj) {
  * @param  {[String]}     fields List of field names to include, or empty for all fields.
  * @return {QueryBuilder}        Query filtered to the requested fields, or all fields for the primary table if fields is empty.
  */
-module.exports.applyFieldFilter = function applyFieldFilter(query, model, fields) {
+export function applyFieldFilter(query, model, fields) {
   if (fields.length === 0) {
     return query.select(`${model.table}.*`);
   }
@@ -128,7 +128,7 @@ module.exports.applyFieldFilter = function applyFieldFilter(query, model, fields
  * @param  {[String]} fields Fields to include for primary resource type, or an empty array if all fields should be included.
  * @return {Query}           Updated query.
  */
-module.exports.joinLinkedRelationships = function joinLinkedRelationships(knex, query, model, fields) {
+export function joinLinkedRelationships(knex, query, model, fields) {
   const linkedRels = model.relationships.filter(
     rel => rel.via != null && (fields.length === 0 || fields.includes(rel.key))
   );

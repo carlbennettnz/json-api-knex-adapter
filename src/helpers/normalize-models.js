@@ -1,4 +1,4 @@
-function normalizeModels(models) {
+export default function normalizeModels(models) {
   const normalizedModels = {};
   const modelTables = Object.values(models).map(model => model.table);
 
@@ -99,5 +99,3 @@ function nullSerialize(val) {
 function nullDeserialize(val) {
   return val;
 }
-
-module.exports = normalizeModels;

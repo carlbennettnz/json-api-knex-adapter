@@ -158,4 +158,4 @@ function getQueryForType(knex, { table, idKey }, subqueries) {
   return includeQuery;
 }
 
-module.exports = getIncludedResources;
+export default getIncludedResources;

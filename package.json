@@ -5,24 +5,27 @@
   "main": "src/knex-adapter.js",
   "scripts": {
     "pretest": "knex migrate:latest",
-    "test": "NODE_ENV=test mocha --recursive test/unit test/integration"
+    "test": "NODE_ENV=test mocha --require ts-node/require test/{unit,integration}/**/*.ts"
   },
   "author": "Out There Business Solutions",
   "license": "UNLICENSED",
   "devDependencies": {
+    "@types/knex": "^0.14.9",
+    "@types/mocha": "^5.0.0",
+    "@types/node": "^9.6.0",
     "chai": "^4.1.2",
-    "eslint": "^4.9.0",
-    "eslint-config-otbs": "outtherenz/eslint-config-otbs",
     "express": "^4.16.2",
-    "mocha": "^4.0.1"
+    "mocha": "^4.0.1",
+    "ts-node": "^5.0.1",
+    "typescript": "^2.7.2"
   },
   "dependencies": {
     "debug": "^3.1.0",
+    "json-api": "^3.0.0-beta.20",
     "knex": "^0.13.0",
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "pg": "^7.3.0",
-    "json-api": "json-api@3.0.0-beta.20",
     "supertest": "^3.0.0",
     "testdouble": "^3.2.6"
   }

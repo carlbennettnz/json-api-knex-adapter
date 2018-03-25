@@ -19,7 +19,7 @@ const ALLOWED_REL_VIA_PROPS = [
   'fk'
 ];
 
-function validateModels(models) {
+export default function validateModels(models) {
   for (const modelName in models) {
     const model = models[modelName];
 
@@ -205,5 +205,3 @@ function validateRepeatedKeys(model, modelName) {
 function makeError(modelName, msg) {
   return new Error(`Model Validation Error [${modelName}]: ${msg}.`);
 }
-
-module.exports = validateModels;

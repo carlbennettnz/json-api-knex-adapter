@@ -5,11 +5,11 @@ const {
   Relationship
 } = require('json-api').types;
 
-function recordsToCollection(records, type, model, fields = []) {
+export function recordsToCollection(records, type, model, fields = []) {
   return new Collection(records.map(r => recordToResource(r, type, model, fields)));
 }
 
-function recordToResource(record, type, model, fields = []) {
+export function recordToResource(record, type, model, fields = []) {
   const id = formatId(record[model.idKey]);
   const attrs = {};
   const relationships = {};
@@ -47,7 +47,7 @@ function recordToResource(record, type, model, fields = []) {
   return new Resource(type, id, attrs, relationships);
 }
 
-function resourceToRecord(resource, model, { stringifyObjects = true } = {}) {
+export function resourceToRecord(resource, model, { stringifyObjects = true } = {}) {
   const primary = {};
 
   for (const attr in resource.attrs) {
@@ -92,7 +92,3 @@ function formatId(id) {
     ? null
     : String(id);
 }
-
-module.exports.recordsToCollection = recordsToCollection;
-module.exports.recordToResource = recordToResource;
-module.exports.resourceToRecord = resourceToRecord;
