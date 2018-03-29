@@ -1,9 +1,9 @@
-const {
+import {
   Collection,
   Resource,
   Linkage,
   Relationship
-} = require('json-api').types;
+} from 'json-api'
 
 export function recordsToCollection(records, type, model, fields = []) {
   return new Collection(records.map(r => recordToResource(r, type, model, fields)));

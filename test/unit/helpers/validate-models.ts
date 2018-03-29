@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 
-const { expect } = require('chai');
-const validateMany = require('../../../src/helpers/validate-models');
+import { expect } from 'chai'
+
+import validateMany from '../../../src/helpers/validate-models'
 
 const table = 'post';
 const validate = model => validateMany({ posts: model });

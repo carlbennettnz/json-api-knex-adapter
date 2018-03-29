@@ -1,12 +1,19 @@
-const express = require('express');
-const knex = require('knex');
-const PostgresAdapter = require('../../src/knex-adapter');
+import * as express from 'express'
+import * as knex from 'knex'
+import Adapter from '../../src/knex-adapter'
 
-const {
+import {
   ResourceTypeRegistry,
-  ResourceController,
-  types: { APIError }
-} = require('json-api');
+  APIController,
+  DocumentationController,
+  Error as APIError,
+  httpStrategies
+} from 'json-api'
+import { AdapterInstance } from 'json-api/build/src/db-adapters/AdapterInterface';
+import KnexAdapter from '../../src/knex-adapter';
+import { ResourceTypeDescription } from 'json-api/build/src/ResourceTypeRegistry';
+
+const ExpressStrategy = httpStrategies.Express
 
 const models = {
   posts: {
@@ -93,16 +100,25 @@ const dbConfig = {
   }
 };
 
-function getAppInstance() {
-  const app = express();
+export interface ExpressWithConn extends Express.Application {
+  connection: knex
+}
+
+function getAppInstance(): ExpressWithConn {
+  const app: Express.Application = express();
   const conn = knex(dbConfig);
 
   app.connection = conn;
 
-  const dbAdapter = new PostgresAdapter(models, conn);
-  const registry = new ResourceTypeRegistry(resourceTypes, { dbAdapter });
-  const resourceController = new ResourceController(registry);
-  const handler = resourceController.handle.bind(resourceController);
+  (a: Express.Application) => app.route()
+
+  const dbAdapter: AdapterInstance<typeof KnexAdapter> = new Adapter(models, conn);
+  const defaults: ResourceTypeDescription = { dbAdapter };
+  const registry = new ResourceTypeRegistry(resourceTypes, defaults);
+  const controller = new APIController(registry);
+  const docsController = new DocumentationController(new ResourceTypeRegistry({}), { name: 'Test API' });
+  const Front = new ExpressStrategy(controller, docsController, { host: 'http://localhost:3000' });
+  const handler = Front.apiRequest;
 
   const typeParam = `:type(${Object.keys(resourceTypes).join('|')})`;
 
@@ -123,14 +139,14 @@ function getAppInstance() {
     .patch(handler);
 
   app.use(function(req, res, next) {
-    resourceController.sendError(new APIError(404, undefined, 'Not found'), req, res);
+    Front.sendError(new APIError(404, undefined, 'Not found'), req, res, next);
   });
 
   app.use(function(err, req, res, next) {
-    resourceController.sendError(err, req, res);
+    Front.sendError(err, req, res, next);
   });
 
   return app;
 }
 
-module.exports = getAppInstance;
+export default getAppInstance;

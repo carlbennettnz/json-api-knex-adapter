@@ -1,4 +1,4 @@
-const fs = require('fs');
+import * as fs from 'fs'
 
 const fileNames = fs.readdirSync(`${__dirname}/fixtures`);
 const filePromises = fileNames.filter(name => name.endsWith('.json')).map(name => {
@@ -38,4 +38,4 @@ function database(knex) {
   return { load, clear, close };
 }
 
-module.exports = database;
+export default database;

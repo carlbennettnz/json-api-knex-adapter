@@ -1,7 +1,8 @@
-const getApp = require('../support/get-app-instance');
-const dbHelpers = require('../support/database');
-const request = require('supertest');
-const { expect } = require('chai');
+import * as request from 'supertest'
+import { expect } from 'chai'
+
+import getApp from '../support/get-app-instance'
+import dbHelpers from '../support/database'
 
 /* eslint-disable max-nested-callbacks */
 

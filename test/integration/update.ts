@@ -1,7 +1,7 @@
-const getApp = require('../support/get-app-instance');
-const dbHelpers = require('../support/database');
-const request = require('supertest');
-const { expect } = require('chai');
+import getApp from '../support/get-app-instance'
+import dbHelpers from '../support/database'
+import * as request from 'supertest'
+import { expect } from 'chai'
 
 const POSTS = [{
   id: '000000000000000000000001',

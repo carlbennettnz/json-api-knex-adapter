@@ -1,9 +1,17 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "sourceMap": false,
-    "noImplicitAny": true,
-    "module": "es",
-    "target": "ESNext"
+    "lib": ["es6", "es2016.array.include", "es2015.promise", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "./build",
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "strictPropertyInitialization": false,
+    "target": "es6",
+    "declaration": true
   }
 }

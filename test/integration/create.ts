@@ -1,7 +1,7 @@
-const getApp = require('../support/get-app-instance');
-const dbHelpers = require('../support/database');
-const request = require('supertest');
-const { expect } = require('chai');
+import getApp from '../support/get-app-instance'
+import dbHelpers from '../support/database'
+import * as request from 'supertest'
+import { expect } from 'chai'
 
 const OBJECT_ID_REGEX = /^[0-9a-f]{24}$/;
 
@@ -32,11 +32,11 @@ const POST_WITH_COMMENTS = {
 describe('integrated create', function() {
   let app, knex, db;
 
-  before(() => app = getApp());
-  before(() => knex = app.connection);
-  before(() => db = dbHelpers(knex));
-  beforeEach(() => db.clear());
-  beforeEach(() => db.load());
+  before(() => { app = getApp() });
+  before(() => { knex = app.connection });
+  before(() => { db = dbHelpers(knex) });
+  beforeEach(() => { db.clear() });
+  beforeEach(() => { db.load() });
   after(() => db.close());
 
   describe('single resources', function() {

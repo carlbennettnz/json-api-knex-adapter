@@ -1,8 +1,11 @@
-const { Error: APIError, Collection } = require('json-api').types;
-const _groupBy = require('lodash.groupby');
-const debug = require('debug')('resapi:pg');
-const formatQuery = require('./format-query');
-const { recordToResource } = require('./result-types');
+import { Error as APIError } from 'json-api'
+import { groupBy } from 'lodash-es'
+import * as debugFactory from 'debug'
+
+import formatQuery from './format-query'
+import { recordToResource } from './result-types'
+
+const debug = debugFactory('resapi:pg')
 
 /**
  * Loads the resources to be included in the request, based on the included paths.
@@ -55,7 +58,7 @@ async function getIncludedResources(knex, query, paths, models, primaryType) {
 
   // One query will be made for each type, not each relationship
   const relsToInclude = paths.map(path => rels.find(rel => rel.key === path));
-  const relsByType = _groupBy(relsToInclude, 'type');
+  const relsByType = groupBy(relsToInclude, 'type');
 
   const queries = [];
 
@@ -63,7 +66,7 @@ async function getIncludedResources(knex, query, paths, models, primaryType) {
     const {
       direct = [],
       linked = []
-    } = _groupBy(relsByType[type], rel => rel.via == null ? 'direct' : 'linked');
+    } = groupBy(relsByType[type], rel => rel.via == null ? 'direct' : 'linked');
 
     const subqueries = [
       ...direct.map(rel => query.clone().distinct(rel.key)),

@@ -1,9 +1,12 @@
-const { expect } = require('chai');
-const td = require('testdouble');
+import { expect } from 'chai'
+import * as td from 'testdouble'
+import * as RealKnex from 'knex'
+import { applyFilters, joinLinkedRelationships } from '../../../src/helpers/query'
+
+const realKnex = RealKnex({ client: 'pg' })
+
 const where = td.function();
 const query = { where };
-const realKnex = require('knex')({ client: 'pg' });
-const { applyFilters, joinLinkedRelationships } = require('../../../src/helpers/query');
 
 const model = {
   table: 'post',

@@ -1,4 +1,4 @@
-const APIError = require('json-api').types.Error;
+import { Error as APIError } from 'json-api'
 
 export function applySorts(query, sorts, model) {
   const sortObjs = sorts.map(s => ({

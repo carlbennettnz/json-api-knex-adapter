@@ -1,15 +1,17 @@
-const { expect } = require('chai');
-const PostgresAdapter = require('../../src/knex-adapter');
-const td = require('testdouble');
-const normalizeModels = require('../../src/helpers/normalize-models');
-const realKnex = require('knex')({ client: 'pg' });
-const {
+import { expect } from 'chai'
+import Adapter from '../../src/knex-adapter'
+import td from 'testdouble'
+import normalizeModels from '../../src/helpers/normalize-models'
+import * as RealKnex from 'knex'
+import {
   Collection,
   Resource,
   Linkage,
   Relationship,
-  Error: APIError
-} = require('json-api').types;
+  Error as APIError
+} from 'json-api'
+
+const realKnex = RealKnex({ client: 'pg' })
 
 const models = normalizeModels({
   posts: {
@@ -27,7 +29,7 @@ const POSTS = [
   { _id: 2, title: 'Post 2', author: 1 }
 ];
 
-const adapter = new PostgresAdapter(models, knex);
+const adapter = new Adapter(models, knex);
 
 describe('find', function() {
   afterEach(td.reset);

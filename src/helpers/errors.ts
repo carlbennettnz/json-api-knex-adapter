@@ -1,6 +1,6 @@
-const APIError = require('json-api').types.Error;
+import { APIError } from 'json-api'
 
-const NOT_NULL_ERR_COL_NAME = /null value in column "(.+)" violates not-null constraint$/;
+const NOT_NULL_ERR_COL_NAME = /null value in column "(.+)" violates not-null constraint$/
 
 export function handleQueryError(err) {
   throw err;

@@ -1,15 +1,18 @@
-const { expect } = require('chai');
-const PostgresAdapter = require('../../src/knex-adapter');
-const td = require('testdouble');
-const realKnex = require('knex')({ client: 'pg' });
-const normalizeModels = require('../../src/helpers/normalize-models');
-const { recordsToCollection } = require('../../src/helpers/result-types');
-const {
+import { expect } from 'chai'
+import td from 'testdouble'
+import * as RealKnex from 'knex'
+import {
   Collection,
   Resource,
   Linkage,
   Relationship
-} = require('json-api').types;
+} from 'json-api'
+
+import PostgresAdapter from '../../src/knex-adapter'
+import normalizeModels from '../../src/helpers/normalize-models'
+import { recordsToCollection } from '../../src/helpers/result-types'
+
+const realKnex = RealKnex({ client: 'pg' })
 
 const models = normalizeModels({
   posts: {

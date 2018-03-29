@@ -1,5 +1,5 @@
-const { resourceToRecord } = require('./result-types');
-const APIError = require('json-api').types.Error;
+import { resourceToRecord } from './result-types'
+import { Error as APIError } from 'json-api'
 
 export function validateResources(resources, models) {
   const errors = [];

@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const normalize = require('../../../src/helpers/normalize-models');
+import { expect } from 'chai'
+import normalize from '../../../src/helpers/normalize-models'
 
 const basic = {
   posts: {

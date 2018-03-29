@@ -1,10 +1,11 @@
-const { expect } = require('chai');
-const PostgresAdapter = require('../../src/knex-adapter');
-const normalizeModels = require('../../src/helpers/normalize-models');
-const td = require('testdouble');
-const {
-  Error: APIError
-} = require('json-api').types;
+import { expect } from 'chai'
+import td from 'testdouble'
+import {
+  Error as APIError
+} from 'json-api'
+
+import PostgresAdapter from '../../src/knex-adapter'
+import normalizeModels from '../../src/helpers/normalize-models'
 
 const models = normalizeModels({
   posts: {
