@@ -125,7 +125,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       }
     );
 
-    return resources.isSingular
+    return query.records.isSingular
       ? Data.pure<Resource>(results[0])
       : Data.of<Resource>(results);
   }

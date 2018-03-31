@@ -1,7 +1,6 @@
 import {
     Attr,
     Relationship,
-    Model,
     Models,
     StrictAttr,
     StrictRelationship,
