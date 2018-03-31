@@ -1,4 +1,4 @@
-import { APIError } from 'json-api'
+import { Error as APIError } from 'json-api'
 
 const NOT_NULL_ERR_COL_NAME = /null value in column "(.+)" violates not-null constraint$/
 

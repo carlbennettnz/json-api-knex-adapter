@@ -1,22 +1,26 @@
-import { Error as APIError } from 'json-api'
-import { groupBy } from 'lodash-es'
-import * as debugFactory from 'debug'
+import { Error as APIError } from 'json-api';
+import { groupBy } from 'lodash-es';
+import * as debugFactory from 'debug';
 
-import formatQuery from './format-query'
-import { recordToResource } from './result-types'
+import { QueryBuilder } from 'knex';
+
+import { getKnexFromQuery } from '../helpers/knex';
+import formatQuery from '../helpers/format-query';
+import { recordToResource } from '../helpers/result-types';
+import { StrictModels, StrictRelationship, StrictModel } from '../models/model-interface';
 
 const debug = debugFactory('resapi:pg')
 
 /**
  * Loads the resources to be included in the request, based on the included paths.
  *
- * This implementation makes a query for each relatied resource type to be included, and one subquery for each relationship. The queries
- * produced look something like these:
+ * This implementation makes a query for each related resource type to be included, and one
+ * subquery for each relationship. The queries produced look something like these:
  *
  *     select *
  *     from "author"
  *     where _id in (
- *       select distinct "_id"
+ *       select distinct "author"
  *       from "post"
  *       where "post"."title" = "Post 1")
  *
@@ -27,32 +31,40 @@ const debug = debugFactory('resapi:pg')
  *       left join "post_tag" on "post_tag"."post" = "post"."_id"
  *       where "post"."_id" = 1)
  *
- * The where clauses in the subqueries are always the same as in the primary resource query and should have already been applied to the
- * query passed into this function. The passed query is not mutated.
+ * The where clauses in the subqueries are always the same as in the primary resource query and
+ * should have already been applied to the query passed into this function. The passed query is not
+ * mutated.
  *
- * There are a few different ways this could be implemented, including some that may perform better than this implementation.
+ * There are a few different ways this could be implemented, including some that may perform better
+ * than this implementation.
  *
- * Firstly, if only a single relationship of a given type is being included, the query could be inverted, giving something more like this:
+ * For example, if only a single relationship of a given type is being included, the query could be
+ * inverted, giving something more like this:
  *
  *     select distinct on("author"."_id") "author".*
  *     from "post"
  *     right join "author" on "author"."_id" = "post"."author"
  *     where "post"."title" = "Post 1"
  *
- * This trades adds a join, but removes a subquery. Is that better? No idea, but if you're having performance problems, it might be worth
- * trying.
+ * This trades adds a join, but removes a subquery. Is that better? No idea, but if you're having
+ * performance problems, it might be worth trying.
  *
- * @param  {Knex}                knex        Knex instance.
- * @param  {QueryBuilder}        query       Knex query with the where clauses (but not select or order by clauses) for the primary request
- *                                           applied. Will not be mutated by this function.
+ * @param  {QueryBuilder}        query       Knex query with the where clauses (but not select or
+ *                                           order by clauses) for the primary request applied.
+ *                                           Will not be mutated by this function.
  * @param  {[String]}            paths       List of relationship key names to apply.
  * @param  {[Model]}             models      All models.
  * @param  {String}              primaryType The type of the primary resources.
  * @return {Promise<Collection>}             The collection of resources to be included.
  */
-async function getIncludedResources(knex, query, paths, models, primaryType) {
-  const model = models[primaryType];
-  const rels = model.relationships;
+export default async function getIncludedResources(
+  query: QueryBuilder,
+  paths: string[],
+  models: StrictModels,
+  primaryType: string
+) {
+  const primaryModel = models[primaryType];
+  const rels = primaryModel.relationships;
 
   validatePaths(paths, rels);
 
@@ -60,17 +72,17 @@ async function getIncludedResources(knex, query, paths, models, primaryType) {
   const relsToInclude = paths.map(path => rels.find(rel => rel.key === path));
   const relsByType = groupBy(relsToInclude, 'type');
 
-  const queries = [];
+  const queries: Promise<any>[] = [];
 
   for (const type in relsByType) {
     const {
       direct = [],
       linked = []
-    } = groupBy(relsByType[type], rel => rel.via == null ? 'direct' : 'linked');
+    } = groupBy(relsByType[type], (rel: StrictRelationship) => rel.via == null ? 'direct' : 'linked');
 
     const subqueries = [
       ...direct.map(rel => query.clone().distinct(rel.key)),
-      ...linked.map(rel => getSubqueryForLinkedRel(knex, query, model, rel))
+      ...linked.map(rel => getSubqueryForLinkedRel(query, model, rel))
     ];
 
     const includeQuery = getQueryForType(knex, models[type], subqueries);
@@ -78,17 +90,18 @@ async function getIncludedResources(knex, query, paths, models, primaryType) {
     debug('executing query for included resources:');
     debug(formatQuery(includeQuery));
 
-    queries.push(includeQuery.then(result => [ type, result ]));
+    queries.push(Promise.resolve(includeQuery).then(result => [ type, result ]));
   }
 
   const resources = await Promise.all(queries).then(results => {
+    // Concat all results into a single array of resources
     return results.reduce((prev, [ type, result ]) =>
       prev.concat(
         result.map(record => recordToResource(record, type, models[type]))
       ), []);
   });
 
-  return new Collection(resources);
+  return resources;
 }
 
 /**
@@ -99,7 +112,7 @@ async function getIncludedResources(knex, query, paths, models, primaryType) {
  * @return {void}
  * @throws {[APIError]} If invalid paths are found.
  */
-function validatePaths(paths, rels) {
+function validatePaths(paths: string[], rels: StrictRelationship[]) {
   const pathErrors = paths
     .filter(path => !rels.some(rel => rel.key === path))
     .map(badPath => new APIError(400, undefined, 'Bad include', `Included path '${badPath}' is not a relationship on this model.`));
@@ -124,19 +137,18 @@ function validatePaths(paths, rels) {
  *   FROM author
  *   WHERE _id IN <the query returned by this method>
  *
- * @param  {Knex}         knex  Knex instance.
  * @param  {QueryBuilder} query Knex query with where clauses already applied.
  * @param  {Model}        model Model of the primary resource.
  * @param  {Object}       rel   Relationship to load.
  * @return {QueryBuilder}       Knex query returning the ids of the related resources.
  */
-function getSubqueryForLinkedRel(knex, query, model, rel) {
+function getSubqueryForLinkedRel(query, model, rel) {
   const foreignPK = `"${rel.via.table}"."${rel.via.pk}"`;
   const localPK = `${model.table}.${model.idKey}`;
   const foreignFK = `${rel.via.table}.${rel.via.fk}`;
 
   return query.clone()
-    .distinct(knex.raw(`${foreignPK} as "${rel.key}"`))
+    .distinct(getKnexFromQuery(query).raw(`${foreignPK} as "${rel.key}"`))
     .leftJoin(rel.via.table, localPK, foreignFK);
 }
 
@@ -144,15 +156,19 @@ function getSubqueryForLinkedRel(knex, query, model, rel) {
  * Builds a query for the resource to be included using a list of subqueries to constrain the results. The subqueries should each return a
  * single column of ids to be compared to the potentially-included resources' ids.
  *
- * @param  {Knex}           knex          Knex instance.
+ * @param  {QueryBuilder}   query         Knex query.
  * @param  {String}         options.table The name of the table from which the resources should be loaded.
  * @param  {String}         options.idKey The name of the value that must be contained in at least one of the subqueries.
- * @param  {[QueryBuilder]} subqueries    List of Knex queries, each returning a single column of ids. Resources will only be included if
+ * @param  {QueryBuilder[]} subqueries    List of Knex queries, each returning a single column of ids. Resources will only be included if
  *                                        their id is found in at least one subquery.
  * @return {QueryBuilder}                 Knex query returning the resources to be included.
  */
-function getQueryForType(knex, { table, idKey }, subqueries) {
-  let includeQuery = knex(table);
+function getQueryForType(
+  query: QueryBuilder,
+  { table, idKey }: StrictModel,
+  subqueries: QueryBuilder[]
+): QueryBuilder {
+  let includeQuery = getKnexFromQuery(query)(table);
 
   for (const subquery of subqueries) {
     includeQuery = includeQuery.orWhereIn(idKey, subquery);
@@ -160,5 +176,3 @@ function getQueryForType(knex, { table, idKey }, subqueries) {
 
   return includeQuery;
 }
-
-export default getIncludedResources;
