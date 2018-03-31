@@ -1,4 +1,4 @@
-import { resourceToRecord } from './result-types'
+import resourceToPrimaryRecord from './resource-to-primary-record'
 import { Error as APIError } from 'json-api'
 
 export function validateResources(resources, models) {
@@ -26,8 +26,9 @@ export function validateResources(resources, models) {
       }
     }
 
+    // TODO: Remove. Only needed for Out There, and we only use it in one place.
     if (typeof model.validate === 'function') {
-      model.validate.call(resourceToRecord(res, { stringifyObjects: false }));
+      model.validate.call(resourceToPrimaryRecord(res, model, { stringifyObjects: false }));
     }
   }
 
@@ -60,14 +61,13 @@ export function ensureOneToManyRelsAreNotPresent(resources, models) {
       if (res.relationships[relKey]) {
         const error = new APIError(
           403,
-          null,
+          undefined,
           'Illegal update to one-to-many relationship',
           'There are many complex API design trade-offs around how to handle changes to one-to-many relationships. For example, if an ID '
             + 'is removed from a to-many data array, what should happen to the newly orphaned foreign resource? As a result of issues '
             + 'like this, updates to one-to-many relationships have been disallowed completely. Please do not include one-to-many '
             + 'relationships in POST and PATCH requests.',
-          null,
-          { pointer: `/data/${resources.indexOf(res)}/relationships/${relKey}` }
+          { pointer: `/data/${resources.indexOf(res)}/relationships/${relKey}` }            
         );
 
         errors.push(error);

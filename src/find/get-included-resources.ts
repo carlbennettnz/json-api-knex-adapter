@@ -1,13 +1,13 @@
 import { Error as APIError } from 'json-api';
-import { groupBy } from 'lodash-es';
+import { groupBy } from 'lodash';
 import * as debugFactory from 'debug';
 
 import { QueryBuilder } from 'knex';
 
 import { getKnexFromQuery } from '../helpers/knex';
 import formatQuery from '../helpers/format-query';
-import { recordToResource } from '../helpers/result-types';
-import { StrictModels, StrictRelationship, StrictModel } from '../models/model-interface';
+import recordToResource from '../helpers/record-to-resource';
+import { StrictModels, StrictRelationship, StrictModel, RelType } from '../models/model-interface';
 
 const debug = debugFactory('resapi:pg')
 
@@ -69,7 +69,7 @@ export default async function getIncludedResources(
   validatePaths(paths, rels);
 
   // One query will be made for each type, not each relationship
-  const relsToInclude = paths.map(path => rels.find(rel => rel.key === path));
+  const relsToInclude = paths.map(path => rels.find(rel => rel.key === path) as StrictRelationship);
   const relsByType = groupBy(relsToInclude, 'type');
 
   const queries: Promise<any>[] = [];
@@ -78,14 +78,14 @@ export default async function getIncludedResources(
     const {
       direct = [],
       linked = []
-    } = groupBy(relsByType[type], (rel: StrictRelationship) => rel.via == null ? 'direct' : 'linked');
+    } = groupBy(relsByType[type], rel => rel.via == null ? 'direct' : 'linked');
 
     const subqueries = [
       ...direct.map(rel => query.clone().distinct(rel.key)),
-      ...linked.map(rel => getSubqueryForLinkedRel(query, model, rel))
+      ...linked.map(rel => getSubqueryForLinkedRel(query, models[type], rel))
     ];
 
-    const includeQuery = getQueryForType(knex, models[type], subqueries);
+    const includeQuery = getQueryForType(query, models[type], subqueries);
 
     debug('executing query for included resources:');
     debug(formatQuery(includeQuery));

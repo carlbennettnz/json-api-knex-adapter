@@ -1,6 +1,6 @@
 import { StrictModel, ToManyRelationship } from "../models/model-interface";
 import { Transaction } from "knex";
-import { flatten } from "lodash-es";
+import { flatten } from "lodash";
 import resourcesToRelRecords from '../helpers/resources-to-rel-records';
 import { ResourceWithId } from "json-api/build/src/types/Resource";
 

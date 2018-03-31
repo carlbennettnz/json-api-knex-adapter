@@ -9,8 +9,8 @@ import dbHelpers from '../support/database'
 describe('integrated find', function() {
   let app, db;
 
-  before(() => app = getApp());
-  before(() => db = dbHelpers(app.connection));
+  before(() => { app = getApp() });
+  before(() => { db = dbHelpers(app.connection) });
   beforeEach(() => db.clear());
   beforeEach(() => db.load());
   after(() => db.close());
@@ -62,7 +62,7 @@ describe('integrated find', function() {
     it.skip('populates relationships with include', async function() {
       const res = await request(app)
         .get('/posts')
-        .query('include', 'author')
+        .query({ include: 'author' })
         .accept('application/vnd.api+json')
         .expect(200);
 
@@ -253,7 +253,7 @@ describe('integrated find', function() {
     it('ignores filters', async function() {
       const res = await request(app)
         .get('/posts/000000000000000000000001')
-        .query('filter[simple][title]', 'xyz')
+        .query({ 'filter[simple][title]': 'xyz' })
         .accept('application/vnd.api+json')
         .expect(200);
 
