@@ -5,7 +5,8 @@ export default function getAfterUpdateFindQuery(
 ) {
   const findQueryOpts = {
     type: query.type,
-    returning: query.returning
+    returning: query.returning,
+    singular: query.patch.isSingular
   };
   
   const ids = query.patch.map(res => res.id).unwrap() as string | string[];
