@@ -6,15 +6,14 @@
   "scripts": {
     "pretest": "knex migrate:latest",
     "test": "NODE_ENV=test mocha --require ts-node/register test/{unit,integration}/**/*.ts",
-    "build": "tsc",
-    "postinstall": "npm run build"
+    "build": "tsc"
   },
   "author": "Out There Business Solutions",
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/knex": "^0.14.9",
-    "@types/lodash-es": "^4.17.0",
+    "@types/lodash": "^4.17.0",
     "@types/mocha": "^5.0.0",
     "@types/mongoose": "^5.0.7",
     "@types/node": "^9.6.0",
