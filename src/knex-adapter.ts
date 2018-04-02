@@ -149,9 +149,8 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     const findQuery = getAfterUpdateFindQuery(query);
 
-    const result = await this.find(findQuery);
-
-    return result[0]
+    return await this.find(findQuery)
+      .then(([ primary ]) => primary);
   }
   
   async delete(query: DeleteQuery): Promise<any> {
