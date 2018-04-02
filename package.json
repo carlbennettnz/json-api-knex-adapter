@@ -6,7 +6,8 @@
   "scripts": {
     "pretest": "knex migrate:latest",
     "test": "NODE_ENV=test mocha --require ts-node/register test/{unit,integration}/**/*.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "postinstall": "npm run build"
   },
   "author": "Out There Business Solutions",
   "license": "UNLICENSED",
