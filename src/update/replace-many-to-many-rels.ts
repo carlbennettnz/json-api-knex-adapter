@@ -25,7 +25,7 @@ export default async function replaceManyToManyRels(
       await trx(rel.via.table)
         .delete()
         .where(rel.via.fk, 'in', resourceIds);
-      
+
       // Insert the new
       await trx(rel.via.table)
         .insert(recordsForRel);

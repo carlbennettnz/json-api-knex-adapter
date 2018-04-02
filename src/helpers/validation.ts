@@ -1,11 +1,11 @@
 import resourceToPrimaryRecord from './resource-to-primary-record'
-import { Error as APIError } from 'json-api'
+import { Error as APIError, Resource } from 'json-api'
+import { StrictModel, RelType } from '../models/model-interface';
 
-export function validateResources(resources, models) {
+export function validateResources(resources: Resource[], model: StrictModel) {
   const errors = [];
 
   for (const res of resources) {
-    const model = models[res.type]; // TODO: Handle mising model
     const relationships = model.relationships.map(r => r.key);
 
     for (const attr in res.attrs) {
@@ -27,7 +27,9 @@ export function validateResources(resources, models) {
     }
 
     // TODO: Remove. Only needed for Out There, and we only use it in one place.
+    // @ts-ignore
     if (typeof model.validate === 'function') {
+      // @ts-ignore
       model.validate.call(resourceToPrimaryRecord(res, model, { stringifyObjects: false }));
     }
   }
@@ -48,27 +50,25 @@ export function validateResources(resources, models) {
  * @return {void}
  * @throws {APIError[]} If one-to-many relationships are found.
  */
-export function ensureOneToManyRelsAreNotPresent(resources, models) {
+export function ensureOneToManyRelsAreNotPresent(resources: Resource[], model: StrictModel) {
   const errors: APIError[] = [];
 
   for (const res of resources) {
-    const model = models[res.type]; // TODO: Handle missing model
     const relationships = model.relationships
-      .filter(r => r.relType === 'ONE_TO_MANY')
+      .filter(r => r.relType === RelType.ONE_TO_MANY)
       .map(r => r.key);
 
     for (const relKey of relationships) {
       if (res.relationships[relKey]) {
-        const error = new APIError(
-          403,
-          undefined,
-          'Illegal update to one-to-many relationship',
-          'There are many complex API design trade-offs around how to handle changes to one-to-many relationships. For example, if an ID '
+        const error = new APIError({
+          status: 403,
+          title: 'Illegal update to one-to-many relationship',
+          detail: 'There are many complex API design trade-offs around how to handle changes to one-to-many relationships. For example, if an ID '
             + 'is removed from a to-many data array, what should happen to the newly orphaned foreign resource? As a result of issues '
             + 'like this, updates to one-to-many relationships have been disallowed completely. Please do not include one-to-many '
-            + 'relationships in POST and PATCH requests.',
-          { pointer: `/data/${resources.indexOf(res)}/relationships/${relKey}` }            
-        );
+            + 'relationships in POST and PATCH requests.' /*,
+          source: { pointer: `/data/${resources.indexOf(res)}/relationships/${relKey}` } */
+        });
 
         errors.push(error);
       }

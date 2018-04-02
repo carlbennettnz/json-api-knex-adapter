@@ -13,15 +13,17 @@ export default async function saveAndAssignManyToManyRels(
   const relRecords = resourcesToRelRecords(resources, model);
 
   const savedRelRecords = await Promise.all(
-    Object.keys(relRecords).map(key => {
-      const rel = model.relationships.find(rel => rel.key === key) as ToManyRelationship;
+    Object.keys(relRecords)
+      .filter(key => relRecords[key].length > 0)
+      .map(key => {
+        const rel = model.relationships.find(rel => rel.key === key) as ToManyRelationship;
 
-      return trx
-        .insert(relRecords[key])
-        .into(rel.via.table)
-        .returning('*')
-        .then(inserted => inserted.map(record => ({ rel, record })));
-    })
+        return trx
+          .insert(relRecords[key])
+          .into(rel.via.table)
+          .returning('*')
+          .then(inserted => inserted.map(record => ({ rel, record })));
+      })
   ).then(flatten);
 
   for (const { rel, record: relRecord } of savedRelRecords) {

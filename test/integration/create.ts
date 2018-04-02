@@ -35,12 +35,14 @@ describe('integrated create', function() {
   before(() => { app = getApp() });
   before(() => { knex = app.connection });
   before(() => { db = dbHelpers(knex) });
-  beforeEach(() => { db.clear() });
-  beforeEach(() => { db.load() });
+  beforeEach(() => db.clear());
+  beforeEach(() => db.load());
   after(() => db.close());
 
   describe('single resources', function() {
     it('inserts the resource', async function() {
+      const r = await knex('author')
+
       await request(app)
         .post('/posts')
         .type('application/vnd.api+json')
@@ -107,7 +109,9 @@ describe('integrated create', function() {
 
       expect(result.body.errors).to.have.lengthOf(1);
       expect(result.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
-      expect(result.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
+
+      // https://github.com/ethanresnick/json-api/pull/139#issuecomment-377857355
+      // expect(result.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
 
       const postCount = await countPosts();
 

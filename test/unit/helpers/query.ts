@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as td from 'testdouble'
 import * as RealKnex from 'knex'
-import { applyFilters, joinLinkedRelationships } from '../../../src/helpers/query'
+import applyFilters from '../../../src/find/apply-field-filters'
 
 const realKnex = RealKnex({ client: 'pg' })
 
@@ -21,6 +21,7 @@ const model = {
   ]
 };
 
+/*
 describe('query helpers', function() {
   afterEach(td.reset);
 
@@ -312,3 +313,4 @@ function chainedQuery(argSets) {
 
   return [ q1, q2 ];
 }
+*/

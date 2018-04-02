@@ -18,6 +18,7 @@ import {
 
 import * as Knex from 'knex'
 import * as debugFactory from 'debug';
+import * as _ from 'lodash';
 
 // Models
 import normalizeModels from './models/normalize'
@@ -148,7 +149,9 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     const findQuery = getAfterUpdateFindQuery(query);
 
-    return this.find(findQuery);
+    const result = await this.find(findQuery);
+
+    return result[0]
   }
   
   async delete(query: DeleteQuery): Promise<any> {
@@ -198,7 +201,20 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
   }
   
   async getTypePaths(items: {type: string, id: string}[]): Promise<TypeIdMapOf<TypeInfo>> {
-    return {}
+    const itemsByType: any = _.groupBy(items, 'type')
+    const result: TypeIdMapOf<TypeInfo> = {}
+
+    for (const type in itemsByType) {
+      const typeMap = result[type] = {};
+
+      for (const item of itemsByType[type]) {
+        typeMap[item.id] = {
+          typePath: [ item.type ]
+        }
+      }
+    }
+    
+    return result
   }
 
   static getStandardizedSchema(model: any, pluralizer: any): any {

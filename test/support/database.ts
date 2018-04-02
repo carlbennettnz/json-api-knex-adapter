@@ -28,7 +28,9 @@ function database(knex) {
 
     const tableNames = tables.map(t => `"${t.table}"`);
 
-    await knex.raw(`TRUNCATE ${tableNames.join(', ')} CASCADE`);
+    if (tableNames.length > 0) {
+      await knex.raw(`TRUNCATE ${tableNames.join(', ')} CASCADE`);
+    }
   }
 
   async function close() {

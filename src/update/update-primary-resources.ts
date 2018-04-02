@@ -9,8 +9,13 @@ export default async function updatePrimaryResources(
   trx: Transaction
 ): Promise<any> {
   return await Promise.all(
-    resources.map(resource => {
+    resources.map(async resource => {
       const record = resourceToPrimaryRecord(resource, model);
+
+      // Possible if the only values changed are to-many relationships
+      if (Object.keys(record).length === 0) {
+        return 0
+      }
       
       return trx(model.table)
         .where(model.idKey, resource.id)

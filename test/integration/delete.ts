@@ -7,9 +7,9 @@ import dbHelpers from '../support/database'
 describe('integrated delete', function() {
   let app, knex, db;
 
-  before(() => app = getApp());
-  before(() => knex = app.connection);
-  before(() => db = dbHelpers(knex));
+  before(() => { app = getApp() });
+  before(() => { knex = app.connection });
+  before(() => { db = dbHelpers(knex) });
   beforeEach(() => db.clear());
   beforeEach(() => db.load());
   after(() => db.close());
@@ -33,7 +33,7 @@ describe('integrated delete', function() {
         .delete('/posts/000000000000000000000999')
         .expect(404);
 
-      expect(res.body.errors[0].title).to.equal('No matching resource found');
+      expect(res.body.errors[0].title).to.equal('One or more of the targeted resources could not be found.');
     });
   });
 
