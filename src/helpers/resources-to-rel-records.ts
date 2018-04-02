@@ -1,6 +1,5 @@
 import { Resource } from "json-api";
 import { StrictModel, ToManyRelationship, RelType } from "../models/model-interface";
-import * as assert from 'assert';
 
 /**
  * Returns many-to-many relationship records, keyed by the name of the key in the model.

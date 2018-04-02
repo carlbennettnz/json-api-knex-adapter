@@ -50,7 +50,7 @@ export default function recordToResource(
 
 function getToOneLinkage(type: string, id: any): Data<ResourceIdentifier> {
   return Data.pure<ResourceIdentifier>(
-    new ResourceIdentifier(rel.type, String(id))
+    new ResourceIdentifier(type, String(id))
   );
 }
 

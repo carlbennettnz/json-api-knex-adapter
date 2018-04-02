@@ -105,7 +105,7 @@ export interface ExpressWithConn extends Express.Application {
 }
 
 function getAppInstance(): ExpressWithConn {
-  const app: Express.Application = express();
+  const app: ExpressWithConn = express();
   const conn = knex(dbConfig);
 
   app.connection = conn;

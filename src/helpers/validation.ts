@@ -49,7 +49,7 @@ export function validateResources(resources, models) {
  * @throws {APIError[]} If one-to-many relationships are found.
  */
 export function ensureOneToManyRelsAreNotPresent(resources, models) {
-  const errors = [];
+  const errors: APIError[] = [];
 
   for (const res of resources) {
     const model = models[res.type]; // TODO: Handle missing model

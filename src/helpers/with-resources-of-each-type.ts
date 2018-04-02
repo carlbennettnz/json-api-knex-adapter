@@ -22,7 +22,7 @@ export default async function withResourcesOfEachType<T extends Resource, U exte
 
   return await knex.transaction(trx => {
     const promises = Object.keys(byType).map(
-      type => callback(trx, type, models[type], byType[type])
+      type => callback(trx, type, models[type], byType[type] as T[])
     );
     
     return Promise.all(promises).then(flatten);

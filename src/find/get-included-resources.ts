@@ -1,4 +1,4 @@
-import { Error as APIError } from 'json-api';
+import { Resource, Error as APIError } from 'json-api';
 import { groupBy } from 'lodash';
 import * as debugFactory from 'debug';
 
@@ -7,7 +7,7 @@ import { QueryBuilder } from 'knex';
 import { getKnexFromQuery } from '../helpers/knex';
 import formatQuery from '../helpers/format-query';
 import recordToResource from '../helpers/record-to-resource';
-import { StrictModels, StrictRelationship, StrictModel, RelType } from '../models/model-interface';
+import { StrictModels, StrictRelationship, StrictModel } from '../models/model-interface';
 
 const debug = debugFactory('resapi:pg')
 
@@ -62,7 +62,7 @@ export default async function getIncludedResources(
   paths: string[],
   models: StrictModels,
   primaryType: string
-) {
+): Promise<Resource[]> {
   const primaryModel = models[primaryType];
   const rels = primaryModel.relationships;
 
@@ -82,17 +82,17 @@ export default async function getIncludedResources(
 
     const subqueries = [
       ...direct.map(rel => query.clone().distinct(rel.key)),
-      ...linked.map(rel => getSubqueryForLinkedRel(query, models[type], rel))
+      ...linked.map(rel => getSubqueryForLinkedRel(query, primaryModel, rel))
     ];
 
     const includeQuery = getQueryForType(query, models[type], subqueries);
-
+    
     debug('executing query for included resources:');
     debug(formatQuery(includeQuery));
-
+    
     queries.push(Promise.resolve(includeQuery).then(result => [ type, result ]));
   }
-
+  
   const resources = await Promise.all(queries).then(results => {
     // Concat all results into a single array of resources
     return results.reduce((prev, [ type, result ]) =>

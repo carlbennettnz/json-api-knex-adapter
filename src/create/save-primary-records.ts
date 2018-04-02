@@ -12,15 +12,18 @@ export default async function savePrimaryRecords(
   const records = resources
     .map(res => resourceToPrimaryRecord(res, model));
 
-  const insertedRecords = await trx
+  const primaryRecords: object[] = await trx
     .insert(records)
     .into(model.table)
     .returning('*');
 
   // Assign IDs to the resources
   resources.forEach((resource, i) => {
-    resource.id = insertedRecords[i][model.idKey];
+    resource.id = primaryRecords[i][model.idKey];
   });
 
-  return records;
+  return {
+    primaryRecords,
+    resourcesWithIds: resources as ResourceWithId[]
+  };
 }

@@ -76,7 +76,7 @@ describe('integrated find', function() {
       it('applies basic equality filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title]': 'Post 1' })
+          .query('filter=(title,Post 1)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -87,7 +87,7 @@ describe('integrated find', function() {
       it('applies $in filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$in]': [ 'Post 1', 'Post 2' ] })
+          .query('filter=(title,in,(Post 1,Post 2))')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -99,7 +99,7 @@ describe('integrated find', function() {
       it('applies $nin filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$nin]': [ 'Post 1', 'Post 2' ] })
+          .query('filter=(title,nin,(Post 1,Post 2))')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -111,7 +111,7 @@ describe('integrated find', function() {
       it('applies $lt filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$lt]': 'Post 2' })
+          .query('filter=(title,lt,Post 2)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -122,7 +122,7 @@ describe('integrated find', function() {
       it('applies $lte filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$lte]': 'Post 2' })
+          .query('filter=(title,lte,Post 2)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -134,7 +134,7 @@ describe('integrated find', function() {
       it('applies $gt filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$gt]': 'Post 2' })
+          .query('filter=(title,gt,Post 2)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -146,7 +146,7 @@ describe('integrated find', function() {
       it('applies $gte filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$gte]': 'Post 2' })
+          .query('filter=(title,gte,Post 2)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(3);
@@ -159,7 +159,7 @@ describe('integrated find', function() {
       it('applies $eq filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$eq]': 'Post 2' })
+          .query('filter=(title,eq,Post 2)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -170,7 +170,7 @@ describe('integrated find', function() {
       it('applies $ne filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$ne]': 'Post 2' })
+          .query('filter=(title,ne,Post 2)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(3);
@@ -183,7 +183,7 @@ describe('integrated find', function() {
       it('applies ordinal operators to dates', async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][date][$lt]': '2017-07-15T00:00:00.000Z' })
+          .query('filter=(date,lt,2017-07-15T00:00:00.000Z)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -196,23 +196,12 @@ describe('integrated find', function() {
       it(`doesn't care if $in value isn't an array`, async function() {
         const res = await request(app)
           .get('/posts')
-          .query({ 'filter[simple][title][$in]': 'Post 1' })
+          .query('filter=(title,in,Post 1)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
 
         expect(res.body.data[0].attributes.title).to.equal('Post 1');
-      });
-
-      it('catches filter errors', async function() {
-        const res = await request(app)
-          .get('/posts')
-          .query({ 'filter[simple][$or][title]': 'Post 1' })
-          .query({ 'filter[simple][$or][title]': 'Post 2' })
-          .expect(400);
-
-        expect(res.body.errors).to.have.lengthOf(1);
-        expect(res.body.errors[0].title).to.equal('Bad filter');
       });
     });
   });

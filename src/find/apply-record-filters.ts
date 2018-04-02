@@ -16,7 +16,7 @@ export default function applyRecordFilters(query: QueryBuilder, model: StrictMod
       const whereVariant = getWhereVariant(predicate.operator);
 
       query[whereVariant](function(this: QueryBuilder) {
-        applyFilters(this, model, predicateOrConstraint as Predicate);
+        applyRecordFilters(this, model, predicateOrConstraint as Predicate);
       });
     } else {
       // e.g. {x: 1}
@@ -64,13 +64,13 @@ function applyFieldConstraint(
     throw new APIError(400, undefined, 'Bad filter', `Path ${field} does not exist.`);
   }
   
-  if (!(op in OPERATORS)) {
-    throw new APIError(400, undefined, 'Bad filter', `Unknown operator ${op}.`);
+  if (!(operator in OPERATORS)) {
+    throw new APIError(400, undefined, 'Bad filter', `Unknown operator ${operator}.`);
   }
 
   const whereVariant = getWhereVariant(logicalContext);
 
-  query[whereVariant](field, OPERATORS[operator], value);
+  query[whereVariant](qualifiedKey, OPERATORS[operator], value);
 }
 
 /**

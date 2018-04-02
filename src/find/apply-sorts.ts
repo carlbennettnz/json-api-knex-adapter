@@ -44,7 +44,7 @@ function validateSorts(
   if (invalidSorts.length > 0) {
     throw invalidSorts.map(({ field }) => new APIError(
       400,
-      null,
+      undefined,
       'Invalid sort',
       `The attribute '${field}' does not exist as an attribute or relationship on this model.'`
     ));

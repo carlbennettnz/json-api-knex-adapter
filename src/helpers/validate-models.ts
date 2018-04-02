@@ -181,7 +181,7 @@ function validateRelationships(model, modelName) {
 }
 
 function validateRepeatedKeys(model, modelName) {
-  const keys = [];
+  const keys: string[] = [];
 
   // Don't include the idKey, as this is allowed to be repeated, usually in a one-to-one relationship
 
@@ -194,7 +194,7 @@ function validateRepeatedKeys(model, modelName) {
   }
 
   while (keys.length > 1) {
-    const key = keys.pop();
+    const key = keys.pop() as string;
 
     if (keys.includes(key)) {
       throw makeError(modelName, `Property name '${key}' is repeated`);

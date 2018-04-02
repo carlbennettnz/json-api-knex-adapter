@@ -13,5 +13,7 @@
     "strictPropertyInitialization": false,
     "target": "es6",
     "declaration": true
-  }
+  },
+
+  "include": [ "./src" ]
 }

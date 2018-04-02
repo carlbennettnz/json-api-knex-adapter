@@ -61,13 +61,13 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     this.knex = knex;
   }
   
-  async find(query: FindQuery): Promise<[ Data<Resource>, { included: Resource[] } ]> {
+  async find(query: FindQuery): Promise<[ Data<Resource>, Resource[] ]> {
     const model = this.models[query.type];
     const kq = this.knex.from(model.table);
 
     applyRecordFilters(kq, model, query.getFilters());
 
-    const includedPromise: Promise<Resource[]> = getIncludedResources(
+    const includedPromise = getIncludedResources(
       kq,
       query.populates,
       this.models,
@@ -102,7 +102,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       ? Data.pure<Resource>(resources[0])
       : Data.of<Resource>(resources);
 
-    return [ primary, { included } ];
+    return [ primary, included ];
   }
 
   async create(query: CreateQuery): Promise<Data<Resource>> {
@@ -183,8 +183,18 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     return []
   }
   
-  async doQuery(query: any): Promise<any> {
-
+  async doQuery(
+    query: CreateQuery | FindQuery | UpdateQuery | DeleteQuery |
+      AddToRelationshipQuery | RemoveFromRelationshipQuery
+  ): Promise<any> {
+    if (query instanceof CreateQuery) return this.create(query);
+    if (query instanceof FindQuery) return this.find(query);
+    if (query instanceof DeleteQuery) return this.delete(query);
+    if (query instanceof UpdateQuery) return this.update(query);
+    if (query instanceof AddToRelationshipQuery) return this.addToRelationship(query);
+    if (query instanceof RemoveFromRelationshipQuery) return this.removeFromRelationship(query);
+    
+    throw new Error("Unexpected query type");
   }
   
   async getTypePaths(items: {type: string, id: string}[]): Promise<TypeIdMapOf<TypeInfo>> {

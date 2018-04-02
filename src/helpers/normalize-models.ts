@@ -1,4 +1,6 @@
-export default function normalizeModels(models) {
+import { Relationship, StrictAttr, StrictRelationship, RelType, ToManyRelationship, Model } from "../models/model-interface";
+
+export default function normalizeModels(models: { [name: string]: Model }) {
   const normalizedModels = {};
   const modelTables = Object.values(models).map(model => model.table);
 
@@ -23,7 +25,7 @@ function normalizeIdKey(idKey) {
 }
 
 function normalizeAttrs(attrs) {
-  const normalizedAttrs = [];
+  const normalizedAttrs: StrictAttr[] = [];
 
   for (let attr of attrs || []) {
     if (typeof attr === 'string') {
@@ -61,14 +63,14 @@ function normalizeAttrs(attrs) {
  * @return {Object[]}             Normalized relationships.
  */
 function normalizeRelationships(rels, modelTables) {
-  const normalizedRels = [];
+  const normalizedRels: StrictRelationship[] = [];
 
   for (const rel of rels || []) {
     const normalizedRel = {
       key: rel.key,
       type: rel.type,
-      relType: null
-    };
+      relType: null as (null | RelType)
+    } as Relationship;
 
     // Clone the via object
     if ('via' in rel) {
@@ -78,15 +80,15 @@ function normalizeRelationships(rels, modelTables) {
     // Set the relType
     if (rel.relType) {
       normalizedRel.relType = rel.relType;
-    } else if ('via' in rel && modelTables.includes(normalizedRel.via.table)) {
-      normalizedRel.relType = 'ONE_TO_MANY';
+    } else if ('via' in rel && modelTables.includes((<ToManyRelationship>normalizedRel).via.table)) {
+      normalizedRel.relType = RelType.ONE_TO_MANY;
     } else if ('via' in rel) {
-      normalizedRel.relType = 'MANY_TO_MANY';
+      normalizedRel.relType = RelType.MANY_TO_MANY;
     } else {
-      normalizedRel.relType = 'MANY_TO_ONE';
+      normalizedRel.relType = RelType.MANY_TO_ONE;
     }
 
-    normalizedRels.push(normalizedRel);
+    normalizedRels.push(normalizedRel as StrictRelationship);
   }
 
   return normalizedRels;
