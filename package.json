@@ -9,7 +9,7 @@
     "build": "tsc"
   },
   "author": "Out There Business Solutions",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/knex": "^0.14.9",
