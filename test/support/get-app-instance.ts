@@ -64,33 +64,14 @@ const models = {
 };
 
 const resourceTypes = {
-  posts: {
-    urlTemplates: {
-      self: 'http://localhost:3000/posts/{id}',
-      relationship: 'http://localhost:3000/posts/{ownerId}/relationships/{path}'
-    }
-  },
+  posts: {},
+  authors: {},
+  tags: {},
+  awards: {}
+};
 
-  authors: {
-    urlTemplates: {
-      self: 'http://localhost:3000/authors/{id}',
-      relationship: 'http://localhost:3000/authors/{ownerId}/relationships/{path}'
-    }
-  },
-
-  tags: {
-    urlTemplates: {
-      self: 'http://localhost:3000/tags/{id}',
-      relationship: 'http://localhost:3000/tags/{ownerId}/relationships/{path}'
-    }
-  },
-
-  awards: {
-    urlTemplates: {
-      self: 'http://localhost:3000/awards/{id}',
-      relationship: 'http://localhost:3000/awards/{ownerId}/relationships/{path}'
-    }
-  }
+const urlTemplates = {
+  self: '/{type}/{id}'
 };
 
 const dbConfig = {
@@ -100,20 +81,15 @@ const dbConfig = {
   }
 };
 
-export interface ExpressWithConn extends Express.Application {
-  connection: knex
-}
-
-function getAppInstance(): ExpressWithConn {
-  const app: ExpressWithConn = express();
+function getAppInstance(): Express.Application {
+  const app = express();
   const conn = knex(dbConfig);
 
+  // @ts-ignore
   app.connection = conn;
 
-  (a: Express.Application) => app.route()
-
   const dbAdapter: AdapterInstance<typeof KnexAdapter> = new Adapter(models, conn);
-  const defaults: ResourceTypeDescription = { dbAdapter };
+  const defaults: ResourceTypeDescription = { dbAdapter, urlTemplates };
   const registry = new ResourceTypeRegistry(resourceTypes, defaults);
   const controller = new APIController(registry);
   const docsController = new DocumentationController(new ResourceTypeRegistry({}), { name: 'Test API' });
