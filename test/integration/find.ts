@@ -84,7 +84,7 @@ describe('integrated find', function() {
         expect(res.body.data[0].attributes.title).to.equal('Post 1');
       });
 
-      it('applies $in filters', async function() {
+      it('applies in filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,in,(Post 1,Post 2))')
@@ -96,7 +96,7 @@ describe('integrated find', function() {
         expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
       });
 
-      it('applies $nin filters', async function() {
+      it('applies nin filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,nin,(Post 1,Post 2))')
@@ -108,7 +108,7 @@ describe('integrated find', function() {
         expect(res.body.data[1].attributes.title).to.equal('Post 3');
       });
 
-      it('applies $lt filters', async function() {
+      it('applies lt filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,lt,Post 2)')
@@ -119,7 +119,7 @@ describe('integrated find', function() {
         expect(res.body.data[0].attributes.title).to.equal('Post 1');
       });
 
-      it('applies $lte filters', async function() {
+      it('applies lte filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,lte,Post 2)')
@@ -131,7 +131,7 @@ describe('integrated find', function() {
         expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
       });
 
-      it('applies $gt filters', async function() {
+      it('applies gt filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,gt,Post 2)')
@@ -143,7 +143,7 @@ describe('integrated find', function() {
         expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
-      it('applies $gte filters', async function() {
+      it('applies gte filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,gte,Post 2)')
@@ -156,7 +156,7 @@ describe('integrated find', function() {
         expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
-      it('applies $eq filters', async function() {
+      it('applies eq filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,eq,Post 2)')
@@ -167,7 +167,7 @@ describe('integrated find', function() {
         expect(res.body.data[0].attributes.title).to.equal('Post 2');
       });
 
-      it('applies $ne filters', async function() {
+      it('applies ne filters', async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,ne,Post 2)')
@@ -193,7 +193,7 @@ describe('integrated find', function() {
       });
 
       // To match resapi-mongoose
-      it(`doesn't care if $in value isn't an array`, async function() {
+      it(`doesn't care if in value isn't an array`, async function() {
         const res = await request(app)
           .get('/posts')
           .query('filter=(title,in,Post 1)')
