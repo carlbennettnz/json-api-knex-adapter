@@ -1,6 +1,6 @@
 import { QueryBuilder } from "knex";
 import { StrictModel, RelType } from "../models/model-interface";
-import { Error as APIError, FindQuery } from "json-api";
+import { Error as APIError, FindQuery, Sort, FieldSort } from "json-api";
 
 /**
  * Applies sorts to the query. Throw APIErrors if fields to sort by are not 'id', attributes, or
@@ -13,9 +13,12 @@ export default function applySorts(
 ): void {
   if (sorts == null) return;
 
+  console.log(sorts)
+
   validateSorts(model, sorts);
 
-  for (const { field, direction } of sorts) {
+  // Cast to FieldSort[] is checked by validateSorts()
+  for (const { field, direction } of sorts as FieldSort[]) {
     const key = field === 'id' ? model.idKey : field;
     query.orderBy(`${model.table}.${key}`, direction.toLowerCase());
   }
@@ -27,7 +30,7 @@ export default function applySorts(
  */
 function validateSorts(
   model: StrictModel,
-  sorts: { field: string, direction: 'ASC' | 'DESC' }[]
+  sorts: Sort[]
 ): void {
   const validKeys = [
     'id',
@@ -38,15 +41,15 @@ function validateSorts(
   ]
   
   const invalidSorts = sorts.filter(
-    ({ field }) => !validKeys.includes(field)
+    sort => !('field' in sort) || !validKeys.includes(sort.field)
   );
 
   if (invalidSorts.length > 0) {
-    throw invalidSorts.map(({ field }) => new APIError(
-      400,
-      undefined,
-      'Invalid sort',
-      `The attribute '${field}' does not exist as an attribute or relationship on this model.'`
-    ));
+    throw invalidSorts.map(sort => new APIError({
+      status: 400,
+      title: 'Invalid sort',
+      detail: `The attribute '${'field' in sort ? sort.field : JSON.stringify(sort)}'`
+        + `does not exist as an attribute or relationship on this model.'`
+    }));
   }
 }

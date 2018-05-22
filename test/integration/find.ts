@@ -46,8 +46,7 @@ describe('integrated find', function() {
 
     it('applies sorts', async function() {
       const res = await request(app)
-        .get('/posts')
-        .query({ sort: '-title,id' })
+        .get('/posts?sort=-title,id')
         .accept('application/vnd.api+json')
         .expect(200);
 
@@ -76,7 +75,7 @@ describe('integrated find', function() {
       it('applies basic equality filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,Post 1)')
+          .query('filter=(title,`Post 1`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -87,7 +86,7 @@ describe('integrated find', function() {
       it('applies in filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,in,(Post 1,Post 2))')
+          .query('filter=(title,in,[`Post 1`,`Post 2`])')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -99,7 +98,7 @@ describe('integrated find', function() {
       it('applies nin filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,nin,(Post 1,Post 2))')
+          .query('filter=(title,nin,[`Post 1`,`Post 2`])')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -111,7 +110,7 @@ describe('integrated find', function() {
       it('applies lt filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,lt,Post 2)')
+          .query('filter=(title,lt,`Post 2`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -122,7 +121,7 @@ describe('integrated find', function() {
       it('applies lte filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,lte,Post 2)')
+          .query('filter=(title,lte,`Post 2`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -134,7 +133,7 @@ describe('integrated find', function() {
       it('applies gt filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,gt,Post 2)')
+          .query('filter=(title,gt,`Post 2`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -146,7 +145,7 @@ describe('integrated find', function() {
       it('applies gte filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,gte,Post 2)')
+          .query('filter=(title,gte,`Post 2`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(3);
@@ -159,7 +158,7 @@ describe('integrated find', function() {
       it('applies eq filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,eq,Post 2)')
+          .query('filter=(title,eq,`Post 2`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -170,7 +169,7 @@ describe('integrated find', function() {
       it('applies ne filters', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,ne,Post 2)')
+          .query('filter=(title,ne,`Post 2`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(3);
@@ -183,7 +182,7 @@ describe('integrated find', function() {
       it('applies ordinal operators to dates', async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(date,lt,2017-07-15T00:00:00.000Z)')
+          .query('filter=(date,lt,`2017-07-15T00:00:00.000Z`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(2);
@@ -196,7 +195,7 @@ describe('integrated find', function() {
       it(`doesn't care if in value isn't an array`, async function() {
         const res = await request(app)
           .get('/posts')
-          .query('filter=(title,in,Post 1)')
+          .query('filter=(title,in,`Post 1`)')
           .expect(200);
 
         expect(res.body.data).to.have.lengthOf(1);
@@ -231,8 +230,7 @@ describe('integrated find', function() {
 
     it('ignores sorts', async function() {
       const res = await request(app)
-        .get('/posts/000000000000000000000001')
-        .query({ sort: '-title,id' })
+        .get('/posts/000000000000000000000001?sort=-title,id')
         .accept('application/vnd.api+json')
         .expect(200);
 

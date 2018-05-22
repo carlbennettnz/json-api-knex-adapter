@@ -29,11 +29,16 @@ describe('integrated delete', function() {
     });
 
     it('fails to delete missing resource', async function() {
-      const res = await request(app)
-        .delete('/posts/000000000000000000000999')
-        .expect(404);
+      try {
+        await request(app)
+          .delete('/posts/000000000000000000000999');
+      } catch (err) {
+        expect(err.response.status).to.equal(404);
+        expect(err.response.body.errors[0].title).to.equal('One or more of the targeted resources could not be found.');
+        return;
+      }
 
-      expect(res.body.errors[0].title).to.equal('One or more of the targeted resources could not be found.');
+      throw new Error('Expected request to fail');
     });
   });
 

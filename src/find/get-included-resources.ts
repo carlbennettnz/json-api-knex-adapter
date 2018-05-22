@@ -1,4 +1,4 @@
-import { Resource, Error as APIError } from 'json-api';
+import { Error as APIError } from 'json-api';
 import { groupBy } from 'lodash';
 import * as debugFactory from 'debug';
 
@@ -8,6 +8,7 @@ import { getKnexFromQuery } from '../helpers/knex';
 import formatQuery from '../helpers/format-query';
 import recordToResource from '../helpers/record-to-resource';
 import { StrictModels, StrictRelationship, StrictModel } from '../models/model-interface';
+import { ReturnedResource } from 'json-api/build/src/db-adapters/AdapterInterface';
 
 const debug = debugFactory('resapi:pg')
 
@@ -62,7 +63,7 @@ export default async function getIncludedResources(
   paths: string[],
   models: StrictModels,
   primaryType: string
-): Promise<Resource[]> {
+): Promise<ReturnedResource[]> {
   const primaryModel = models[primaryType];
   const rels = primaryModel.relationships;
 
@@ -115,7 +116,11 @@ export default async function getIncludedResources(
 function validatePaths(paths: string[], rels: StrictRelationship[]) {
   const pathErrors = paths
     .filter(path => !rels.some(rel => rel.key === path))
-    .map(badPath => new APIError(400, undefined, 'Bad include', `Included path '${badPath}' is not a relationship on this model.`));
+    .map(badPath => new APIError({
+      status: 400,
+      title: 'Bad include',
+      detail: `Included path '${badPath}' is not a relationship on this model.`
+    }));
 
   if (pathErrors.length > 0) {
     throw pathErrors;

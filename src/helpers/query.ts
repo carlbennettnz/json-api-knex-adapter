@@ -19,7 +19,11 @@ export function applySorts(query, sorts, model) {
 
   if (invalidSorts.length) {
     throw invalidSorts.map(({ attr }) =>
-      new APIError(400, undefined, 'Invalid sort', `The attribute '${attr}' does not exist as an attribute or relationship on this model.'`)
+      new APIError({
+        status: 400, 
+        title: 'Invalid sort',
+        detail: `The attribute '${attr}' does not exist as an attribute or relationship on this model.'`
+      })
     );
   }
 

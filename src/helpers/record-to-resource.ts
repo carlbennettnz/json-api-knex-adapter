@@ -10,12 +10,14 @@ import {
   RelType
 } from "../models/model-interface";
 
+import { ReturnedResource } from "json-api/build/src/db-adapters/AdapterInterface";
+
 export default function recordToResource(
   record: any,
   type: string,
   model: StrictModel,
   fields: string[] = []
-): Resource {
+): ReturnedResource {
   const id = String(record[model.idKey]);
   const attrs = {};
   const relationships = {};
@@ -44,8 +46,12 @@ export default function recordToResource(
     });
   }
 
-  // TODO: set resource.typePath
-  return new Resource(type, id, attrs, relationships);
+  const resource = new Resource(type, id, attrs, relationships);
+  
+  // TODO: This, but properly
+  resource.typePath = [ type ];
+
+  return resource as ReturnedResource; // Resource has id and typePath
 }
 
 function getToOneLinkage(type: string, id: any): Data<ResourceIdentifier> {

@@ -98,22 +98,28 @@ describe('integrated update', function() {
     it('gives 403 forbidden when a user attempts to update one-to-many relationships', async function() {
       const [ { count: preCount } ] = await knex('comment').where('post', '=', '000000000000000000000001').count();
 
-      const res = await request(app)
-        .patch('/posts/000000000000000000000001')
-        .type('application/vnd.api+json')
-        .send({ data: POSTS_WITH_REL_UPDATES[1] })
-        .expect(403);
+      try {
+        await request(app)
+          .patch('/posts/000000000000000000000001')
+          .type('application/vnd.api+json')
+          .send({ data: POSTS_WITH_REL_UPDATES[1] });
+      } catch (err) {
+        expect(err.response.status).to.equal(403);
+        expect(err.response.body.errors).to.have.lengthOf(1);
+        expect(err.response.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
 
-      expect(res.body.errors).to.have.lengthOf(1);
-      expect(res.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
+        // https://github.com/ethanresnick/json-api/pull/139#issuecomment-377857355
+        // expect(res.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
 
-      // https://github.com/ethanresnick/json-api/pull/139#issuecomment-377857355
-      // expect(res.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
+        const [{ count: postCount }] = await knex('comment').where('post', '=', '000000000000000000000001').count();
 
-      const [ { count: postCount } ] = await knex('comment').where('post', '=', '000000000000000000000001').count();
+        expect(preCount).to.equal('3');
+        expect(postCount).to.equal('3');
 
-      expect(preCount).to.equal('3');
-      expect(postCount).to.equal('3');
+        return;
+      }
+
+      throw new Error('Expected request to fail');
     });
   });
 
@@ -166,15 +172,22 @@ describe('integrated update', function() {
     it('is atomic', async function() {
       const pre = await knex('post');
 
-      await request(app)
-        .patch('/posts')
-        .type('application/vnd.api+json')
-        .send({ data: POSTS_WITH_BAD_AUTHOR })
-        .expect(500);
+      try {
+        await request(app)
+          .patch('/posts')
+          .type('application/vnd.api+json')
+          .send({ data: POSTS_WITH_BAD_AUTHOR });
+      } catch (err) {
+        expect(err.response.status).to.equal(500);
 
-      const post = await knex('post');
+        const post = await knex('post');
 
-      expect(pre).deep.equals(post);
+        expect(pre).deep.equals(post);
+
+        return;
+      }
+
+      throw new Error('Expected request to fail');
     });
   });
 });

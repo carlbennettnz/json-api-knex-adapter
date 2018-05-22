@@ -5,7 +5,6 @@ import {
   DeleteQuery,
   AddToRelationshipQuery,
   RemoveFromRelationshipQuery,
-  Resource,
   Data,
   Errors
 } from 'json-api'
@@ -13,7 +12,12 @@ import {
 import {
   Adapter,
   TypeIdMapOf,
-  TypeInfo
+  TypeInfo,
+  FindReturning,
+  CreationReturning,
+  ReturnedResource,
+  UpdateReturning,
+  DeletionReturning
 } from 'json-api/build/src/db-adapters/AdapterInterface'
 
 import * as Knex from 'knex'
@@ -25,7 +29,7 @@ import normalizeModels from './models/normalize'
 import { Models, StrictModels } from './models/model-interface'
 
 // Finds
-import applyRecordFilters from './find/apply-record-filters';
+import applyRecordFilters, { SUPPORTED_OPERATORS } from './find/apply-record-filters';
 import applyFieldFilters from './find/apply-field-filters';
 import getIncludedResources from './find/get-included-resources';
 import joinToManyRelationships from './find/join-to-many-relationships';
@@ -54,6 +58,10 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
   // Doing this makes our implements declaration work.
   "constructor": typeof KnexAdapter
 
+  // { eq: {}, lt: {}, ... }
+  static supportedOperators = SUPPORTED_OPERATORS
+    .reduce((map, op) => ({ ...map, [op]: {} }), {});
+
   models: StrictModels;
   knex: Knex;
 
@@ -62,7 +70,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     this.knex = knex;
   }
   
-  async find(query: FindQuery): Promise<[ Data<Resource>, Resource[] ]> {
+  async find(query: FindQuery): Promise<FindReturning> {
     const model = this.models[query.type];
     const kq = this.knex.from(model.table);
 
@@ -82,7 +90,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     applySorts(kq, model, query.sort);
 
     let records: any[];
-    let included: Resource[];
+    let included: ReturnedResource[];
 
     debug('executing query:');
     debug(formatQuery(kq));
@@ -99,14 +107,14 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       record => recordToResource(record, query.type, model, selectedFields)
     );
 
-    const primary: Data<Resource> = query.singular
-      ? Data.pure<Resource>(resources[0])
-      : Data.of<Resource>(resources);
+    const primary = query.isSingular
+      ? Data.pure<ReturnedResource>(resources[0])
+      : Data.of<ReturnedResource>(resources);
 
-    return [ primary, included ];
+    return { primary, included, collectionSize: undefined };
   }
 
-  async create(query: CreateQuery): Promise<Data<Resource>> {
+  async create(query: CreateQuery): Promise<CreationReturning> {
     const results = await withResourcesOfEachType(
       query.records,
       this.knex,
@@ -126,12 +134,14 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       }
     );
 
-    return query.records.isSingular
-      ? Data.pure<Resource>(results[0])
-      : Data.of<Resource>(results);
+    const created = query.records.isSingular
+      ? Data.pure<ReturnedResource>(results[0])
+      : Data.of<ReturnedResource>(results);
+    
+    return { created };
   }
 
-  async update(query: UpdateQuery): Promise<any> {
+  async update(query: UpdateQuery): Promise<UpdateReturning> {
     await withResourcesOfEachType(
       query.patch,
       this.knex,
@@ -148,25 +158,28 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     );
 
     const findQuery = getAfterUpdateFindQuery(query);
-
-    return await this.find(findQuery)
-      .then(([ primary ]) => primary);
+    const updated = (await this.find(findQuery)).primary;
+    
+    return { updated }
   }
   
-  async delete(query: DeleteQuery): Promise<any> {
+  async delete(query: DeleteQuery): Promise<DeletionReturning> {
     if (!query.isSimpleIdQuery()) {
       throw new Error('Only simple ID queries are supported');
     }
 
     const model = this.models[query.type];
-
-    const numDeleted = await this.knex(model.table)
-      .whereIn(model.idKey, query.getFilters().value.map(constraint => constraint.value as string))
-      .delete();
+    const kq = this.knex(model.table).delete();
     
-    if (query.singular && numDeleted === 0) {
+    applyRecordFilters(kq, model, query.getFilters())
+
+    const numDeleted = await kq;
+
+    if (query.isSingular && numDeleted === 0) {
       throw Errors.genericNotFound();
     }
+
+    return { deleted: undefined }
   }
   
   async addToRelationship(query: AddToRelationshipQuery): Promise<any> {

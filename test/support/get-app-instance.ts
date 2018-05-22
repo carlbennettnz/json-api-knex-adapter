@@ -115,7 +115,7 @@ function getAppInstance(): Express.Application {
     .patch(handler);
 
   app.use(function(req, res, next) {
-    Front.sendError(new APIError(404, undefined, 'Not found'), req, res, next);
+    Front.sendError(new APIError({ status: 404, title: 'Not found' }), req, res, next);
   });
 
   app.use(function(err, req, res, next) {

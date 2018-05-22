@@ -1,30 +1,35 @@
 import { QueryBuilder } from 'knex';
 import { Error as APIError } from 'json-api';
-import { FieldConstraint, Predicate } from 'json-api/build/src/types';
+import { FieldExpression } from 'json-api/build/src/types'
 
 import { StrictModel, RelType } from '../models/model-interface';
+
+export type Predicate = {
+  operator: 'and' | 'or',
+  args: FieldExpression[]
+}
 
 /**
  * Applies a Predicate to a Knex QueryBuilder
  */
-export default function applyRecordFilters(query: QueryBuilder, model: StrictModel, predicate: Predicate) {
-  for (const predicateOrConstraint of predicate.value) {
-    const isPredicate = ['and', 'or'].includes(predicateOrConstraint.operator);
+export default function applyRecordFilters(query: QueryBuilder, model: StrictModel, expr: Predicate) {
+  for (const subExpr of expr.args) {
+    const isPredicate = ['and', 'or'].includes(subExpr.operator);
     
     if (isPredicate) {
       // e.g. { $and: [{x: 1}, {y: 2}] }
-      const whereVariant = getWhereVariant(predicate.operator);
+      const whereVariant = getWhereVariant(expr.operator as 'and' | 'or');
 
       query[whereVariant](function(this: QueryBuilder) {
-        applyRecordFilters(this, model, predicateOrConstraint as Predicate);
+        applyRecordFilters(this, model, subExpr as Predicate);
       });
     } else {
       // e.g. {x: 1}
       applyFieldConstraint(
         query,
         model,
-        predicateOrConstraint as FieldConstraint,
-        predicate.operator
+        subExpr,
+        expr.operator
       );
     }
   }
@@ -48,6 +53,8 @@ const OPERATORS = {
   gte: '>='
 };
 
+export const SUPPORTED_OPERATORS = Object.keys(OPERATORS);
+
 /**
  * Applies the given constraint to the query. Throws an APIError if the field does not exist on the
  * model, or if the operator is invalid.
@@ -55,17 +62,25 @@ const OPERATORS = {
 function applyFieldConstraint(
   query: QueryBuilder,
   model: StrictModel,
-  { field, value, operator }: FieldConstraint,
+  { operator, args: [ { value: field }, value ] }: FieldExpression,
   logicalContext: 'and' | 'or'
 ): void {
   const qualifiedKey = getQualifiedKey(field, model);
 
   if (qualifiedKey === null) {
-    throw new APIError(400, undefined, 'Bad filter', `Path ${field} does not exist.`);
+    throw new APIError({
+      status: 400,
+      title: 'Bad filter',
+      detail: `Path ${field} does not exist.`
+    });
   }
   
   if (!(operator in OPERATORS)) {
-    throw new APIError(400, undefined, 'Bad filter', `Unknown operator ${operator}.`);
+    throw new APIError({
+      status: 400,
+      title: 'Bad filter',
+      detail: `Unknown operator ${operator}.`
+    });
   }
 
   const whereVariant = getWhereVariant(logicalContext);

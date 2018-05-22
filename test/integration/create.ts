@@ -100,22 +100,28 @@ describe('integrated create', function() {
       const countPosts = () => knex('post').count().then(r => Number(r[0].count));
 
       const preCount = await countPosts();
+      let result
 
-      const result = await request(app)
-        .post('/posts')
-        .type('application/vnd.api+json')
-        .send({ data: POST_WITH_COMMENTS })
-        .expect(403);
+      try {
+        result = await request(app)
+          .post('/posts')
+          .type('application/vnd.api+json')
+          .send({ data: POST_WITH_COMMENTS });
+      } catch (err) {
+        expect(err.response.body.errors).to.have.lengthOf(1);
+        expect(err.response.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
 
-      expect(result.body.errors).to.have.lengthOf(1);
-      expect(result.body.errors[0].title).to.equal('Illegal update to one-to-many relationship');
+        // https://github.com/ethanresnick/json-api/pull/139#issuecomment-377857355
+        // expect(result.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
 
-      // https://github.com/ethanresnick/json-api/pull/139#issuecomment-377857355
-      // expect(result.body.errors[0].paths.pointer).to.equal('/data/0/relationships/comments');
+        const postCount = await countPosts();
 
-      const postCount = await countPosts();
+        expect(postCount).to.equal(preCount, 'no post added');
+        
+        return;
+      }
 
-      expect(postCount).to.equal(preCount, 'no post added');
+      throw new Error('Expected rejection')
     });
   });
 
@@ -161,15 +167,22 @@ describe('integrated create', function() {
     it('is atomic', async function() {
       const [ { count: pre } ] = await knex('post').count();
 
-      await request(app)
-        .post('/posts')
-        .type('application/vnd.api+json')
-        .send({ data: POSTS_WITH_BAD_AUTHOR })
-        .expect(500);
+      try {
+        await request(app)
+          .post('/posts')
+          .type('application/vnd.api+json')
+          .send({ data: POSTS_WITH_BAD_AUTHOR });
+      } catch (err) {
+        expect(err.response.status).to.equal(500);
+        
+        const [ { count: post } ] = await knex('post').count();
+  
+        expect(pre).equals(post);
 
-      const [ { count: post } ] = await knex('post').count();
+        return;
+      }
 
-      expect(pre).equals(post);
+      throw new Error('Expected request to fail');
     });
   });
 });
