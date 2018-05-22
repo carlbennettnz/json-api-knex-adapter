@@ -11,12 +11,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const resource_to_primary_record_1 = require("../helpers/resource-to-primary-record");
 function updatePrimaryResources(resources, model, trx) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield Promise.all(resources.map(resource => {
+        return yield Promise.all(resources.map((resource) => __awaiter(this, void 0, void 0, function* () {
             const record = resource_to_primary_record_1.default(resource, model);
+            if (Object.keys(record).length === 0) {
+                return 0;
+            }
             return trx(model.table)
                 .where(model.idKey, resource.id)
                 .update(record);
-        }));
+        })));
     });
 }
 exports.default = updatePrimaryResources;

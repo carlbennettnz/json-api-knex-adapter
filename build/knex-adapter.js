@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const json_api_1 = require("json-api");
 const debugFactory = require("debug");
+const _ = require("lodash");
 const normalize_1 = require("./models/normalize");
 const apply_record_filters_1 = require("./find/apply-record-filters");
 const apply_field_filters_1 = require("./find/apply-field-filters");
@@ -54,10 +55,10 @@ class KnexAdapter {
                 throw err;
             }
             const resources = records.map(record => record_to_resource_1.default(record, query.type, model, selectedFields));
-            const primary = query.singular
+            const primary = query.isSingular
                 ? json_api_1.Data.pure(resources[0])
                 : json_api_1.Data.of(resources);
-            return [primary, included];
+            return { primary, included, collectionSize: undefined };
         });
     }
     create(query) {
@@ -69,9 +70,10 @@ class KnexAdapter {
                 yield save_and_assign_many_to_many_rels_1.default(resourcesWithIds, primaryRecords, model, trx);
                 return primaryRecords.map(record => record_to_resource_1.default(record, type, model));
             }));
-            return query.records.isSingular
+            const created = query.records.isSingular
                 ? json_api_1.Data.pure(results[0])
                 : json_api_1.Data.of(results);
+            return { created };
         });
     }
     update(query) {
@@ -84,7 +86,8 @@ class KnexAdapter {
                 return resourcesForType;
             }));
             const findQuery = get_after_update_find_query_1.default(query);
-            return this.find(findQuery);
+            const updated = (yield this.find(findQuery)).primary;
+            return { updated };
         });
     }
     delete(query) {
@@ -93,12 +96,13 @@ class KnexAdapter {
                 throw new Error('Only simple ID queries are supported');
             }
             const model = this.models[query.type];
-            const numDeleted = yield this.knex(model.table)
-                .whereIn(model.idKey, query.getFilters().value.map(constraint => constraint.value))
-                .delete();
-            if (query.singular && numDeleted === 0) {
+            const kq = this.knex(model.table).delete();
+            apply_record_filters_1.default(kq, model, query.getFilters());
+            const numDeleted = yield kq;
+            if (query.isSingular && numDeleted === 0) {
                 throw json_api_1.Errors.genericNotFound();
             }
+            return { deleted: undefined };
         });
     }
     addToRelationship(query) {
@@ -133,12 +137,24 @@ class KnexAdapter {
     }
     getTypePaths(items) {
         return __awaiter(this, void 0, void 0, function* () {
-            return {};
+            const itemsByType = _.groupBy(items, 'type');
+            const result = {};
+            for (const type in itemsByType) {
+                const typeMap = result[type] = {};
+                for (const item of itemsByType[type]) {
+                    typeMap[item.id] = {
+                        typePath: [item.type]
+                    };
+                }
+            }
+            return result;
         });
     }
     static getStandardizedSchema(model, pluralizer) {
     }
 }
+KnexAdapter.supportedOperators = apply_record_filters_1.SUPPORTED_OPERATORS
+    .reduce((map, op) => (Object.assign({}, map, { [op]: {} })), {});
 KnexAdapter.unaryFilterOperators = ['and', 'or'];
 KnexAdapter.binaryFilterOperators = ['eq', 'neq', 'ne', 'in', 'nin', 'lt', 'gt', 'lte', 'gte'];
 exports.default = KnexAdapter;

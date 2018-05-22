@@ -1,5 +1,5 @@
 /// <reference types="knex" />
-import { Resource } from 'json-api';
 import { QueryBuilder } from 'knex';
 import { StrictModels } from '../models/model-interface';
-export default function getIncludedResources(query: QueryBuilder, paths: string[], models: StrictModels, primaryType: string): Promise<Resource[]>;
+import { ReturnedResource } from 'json-api/build/src/db-adapters/AdapterInterface';
+export default function getIncludedResources(query: QueryBuilder, paths: string[], models: StrictModels, primaryType: string): Promise<ReturnedResource[]>;

@@ -44,7 +44,11 @@ exports.default = getIncludedResources;
 function validatePaths(paths, rels) {
     const pathErrors = paths
         .filter(path => !rels.some(rel => rel.key === path))
-        .map(badPath => new json_api_1.Error(400, undefined, 'Bad include', `Included path '${badPath}' is not a relationship on this model.`));
+        .map(badPath => new json_api_1.Error({
+        status: 400,
+        title: 'Bad include',
+        detail: `Included path '${badPath}' is not a relationship on this model.`
+    }));
     if (pathErrors.length > 0) {
         throw pathErrors;
     }

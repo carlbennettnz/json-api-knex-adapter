@@ -9,7 +9,10 @@ exports.handleQueryError = handleQueryError;
 function handleSaveError(err, model) {
     if (err.code === '23502' && NOT_NULL_ERR_COL_NAME.test(err.toString())) {
         const col = err.toString().match(NOT_NULL_ERR_COL_NAME)[1];
-        throw new json_api_1.Error(400, undefined, `Path \`${col}\` is required.`);
+        throw new json_api_1.Error({
+            status: 400,
+            title: `Path \`${col}\` is required.`
+        });
     }
     throw err;
 }

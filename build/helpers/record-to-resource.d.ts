@@ -1,3 +1,3 @@
-import { Resource } from "json-api";
 import { StrictModel } from "../models/model-interface";
-export default function recordToResource(record: any, type: string, model: StrictModel, fields?: string[]): Resource;
+import { ReturnedResource } from "json-api/build/src/db-adapters/AdapterInterface";
+export default function recordToResource(record: any, type: string, model: StrictModel, fields?: string[]): ReturnedResource;

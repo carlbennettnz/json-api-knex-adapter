@@ -23,7 +23,9 @@ function recordToResource(record, type, model, fields = []) {
             owner: { type, id, path: rel.key }
         });
     }
-    return new json_api_1.Resource(type, id, attrs, relationships);
+    const resource = new json_api_1.Resource(type, id, attrs, relationships);
+    resource.typePath = [type];
+    return resource;
 }
 exports.default = recordToResource;
 function getToOneLinkage(type, id) {

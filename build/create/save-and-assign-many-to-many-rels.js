@@ -13,7 +13,9 @@ const resources_to_rel_records_1 = require("../helpers/resources-to-rel-records"
 function saveAndAssignManyToManyRels(resources, primaryRecords, model, trx) {
     return __awaiter(this, void 0, void 0, function* () {
         const relRecords = resources_to_rel_records_1.default(resources, model);
-        const savedRelRecords = yield Promise.all(Object.keys(relRecords).map(key => {
+        const savedRelRecords = yield Promise.all(Object.keys(relRecords)
+            .filter(key => relRecords[key].length > 0)
+            .map(key => {
             const rel = model.relationships.find(rel => rel.key === key);
             return trx
                 .insert(relRecords[key])
