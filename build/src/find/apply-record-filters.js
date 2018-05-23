@@ -2,17 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const json_api_1 = require("json-api");
 const model_interface_1 = require("../models/model-interface");
-function applyRecordFilters(query, model, predicate) {
-    for (const predicateOrConstraint of predicate.value) {
-        const isPredicate = ['and', 'or'].includes(predicateOrConstraint.operator);
+function applyRecordFilters(query, model, expr) {
+    for (const subExpr of expr.args) {
+        const isPredicate = ['and', 'or'].includes(subExpr.operator);
         if (isPredicate) {
-            const whereVariant = getWhereVariant(predicate.operator);
+            const whereVariant = getWhereVariant(expr.operator);
             query[whereVariant](function () {
-                applyRecordFilters(this, model, predicateOrConstraint);
+                applyRecordFilters(this, model, subExpr);
             });
         }
         else {
-            applyFieldConstraint(query, model, predicateOrConstraint, predicate.operator);
+            applyFieldConstraint(query, model, subExpr, expr.operator);
         }
     }
 }
@@ -33,13 +33,22 @@ const OPERATORS = {
     lte: '<=',
     gte: '>='
 };
-function applyFieldConstraint(query, model, { field, value, operator }, logicalContext) {
+exports.SUPPORTED_OPERATORS = Object.keys(OPERATORS);
+function applyFieldConstraint(query, model, { operator, args: [{ value: field }, value] }, logicalContext) {
     const qualifiedKey = getQualifiedKey(field, model);
     if (qualifiedKey === null) {
-        throw new json_api_1.Error(400, undefined, 'Bad filter', `Path ${field} does not exist.`);
+        throw new json_api_1.Error({
+            status: 400,
+            title: 'Bad filter',
+            detail: `Path ${field} does not exist.`
+        });
     }
     if (!(operator in OPERATORS)) {
-        throw new json_api_1.Error(400, undefined, 'Bad filter', `Unknown operator ${operator}.`);
+        throw new json_api_1.Error({
+            status: 400,
+            title: 'Bad filter',
+            detail: `Unknown operator ${operator}.`
+        });
     }
     const whereVariant = getWhereVariant(logicalContext);
     query[whereVariant](qualifiedKey, OPERATORS[operator], value);

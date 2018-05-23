@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const model_interface_1 = require("../models/model-interface");
 function normalizeModels(models) {
     const normalizedModels = {};
     const modelTables = Object.values(models).map(model => model.table);
@@ -55,13 +56,13 @@ function normalizeRelationships(rels, modelTables) {
             normalizedRel.relType = rel.relType;
         }
         else if ('via' in rel && modelTables.includes(normalizedRel.via.table)) {
-            normalizedRel.relType = 'ONE_TO_MANY';
+            normalizedRel.relType = model_interface_1.RelType.ONE_TO_MANY;
         }
         else if ('via' in rel) {
-            normalizedRel.relType = 'MANY_TO_MANY';
+            normalizedRel.relType = model_interface_1.RelType.MANY_TO_MANY;
         }
         else {
-            normalizedRel.relType = 'MANY_TO_ONE';
+            normalizedRel.relType = model_interface_1.RelType.MANY_TO_ONE;
         }
         normalizedRels.push(normalizedRel);
     }

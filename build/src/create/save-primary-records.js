@@ -13,14 +13,17 @@ function savePrimaryRecords(resources, model, trx) {
     return __awaiter(this, void 0, void 0, function* () {
         const records = resources
             .map(res => resource_to_primary_record_1.default(res, model));
-        const insertedRecords = yield trx
+        const primaryRecords = yield trx
             .insert(records)
             .into(model.table)
             .returning('*');
         resources.forEach((resource, i) => {
-            resource.id = insertedRecords[i][model.idKey];
+            resource.id = primaryRecords[i][model.idKey];
         });
-        return records;
+        return {
+            primaryRecords,
+            resourcesWithIds: resources
+        };
     });
 }
 exports.default = savePrimaryRecords;

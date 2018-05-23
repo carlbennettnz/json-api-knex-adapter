@@ -12,7 +12,11 @@ function applySorts(query, sorts, model) {
             && !model.relationships.map(r => r.attr).includes(attr);
     });
     if (invalidSorts.length) {
-        throw invalidSorts.map(({ attr }) => new json_api_1.Error(400, null, 'Invalid sort', `The attribute '${attr}' does not exist as an attribute or relationship on this model.'`));
+        throw invalidSorts.map(({ attr }) => new json_api_1.Error({
+            status: 400,
+            title: 'Invalid sort',
+            detail: `The attribute '${attr}' does not exist as an attribute or relationship on this model.'`
+        }));
     }
     for (const sort of sortObjs) {
         const rel = model.relationships.find(r => r.key === sort.attr);
