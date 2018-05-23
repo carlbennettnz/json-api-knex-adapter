@@ -198,20 +198,6 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     return []
   }
   
-  async doQuery(
-    query: CreateQuery | FindQuery | UpdateQuery | DeleteQuery |
-      AddToRelationshipQuery | RemoveFromRelationshipQuery
-  ): Promise<any> {
-    if (query instanceof CreateQuery) return this.create(query);
-    if (query instanceof FindQuery) return this.find(query);
-    if (query instanceof DeleteQuery) return this.delete(query);
-    if (query instanceof UpdateQuery) return this.update(query);
-    if (query instanceof AddToRelationshipQuery) return this.addToRelationship(query);
-    if (query instanceof RemoveFromRelationshipQuery) return this.removeFromRelationship(query);
-    
-    throw new Error("Unexpected query type");
-  }
-  
   async getTypePaths(items: {type: string, id: string}[]): Promise<TypeIdMapOf<TypeInfo>> {
     const itemsByType: any = _.groupBy(items, 'type')
     const result: TypeIdMapOf<TypeInfo> = {}
@@ -232,7 +218,4 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
   static getStandardizedSchema(model: any, pluralizer: any): any {
 
   }
-
-  static unaryFilterOperators: string[] = ['and', 'or']
-  static binaryFilterOperators: string[] = ['eq', 'neq', 'ne', 'in', 'nin', 'lt', 'gt', 'lte', 'gte']
 };
