@@ -36,10 +36,10 @@
   },
   "dependencies": {
     "debug": "^3.1.0",
-    "knex": "^0.14.4",
+    "knex": "^0.14.6",
     "lodash": "^4.17.5",
     "mongoose": "^5.0.12",
-    "pg": "^7.3.0",
+    "pg": "^7.4.3",
     "supertest": "github:carlbennettnz/supertest#b59db30"
   }
 }
