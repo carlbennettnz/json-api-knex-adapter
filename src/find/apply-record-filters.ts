@@ -85,6 +85,10 @@ function applyFieldConstraint(
 
   const whereVariant = getWhereVariant(logicalContext);
 
+  if (['in', 'nin'].includes(operator) && !Array.isArray(value)) {
+    value = [ value ]
+  }
+
   query[whereVariant](qualifiedKey, OPERATORS[operator], value);
 }
 
