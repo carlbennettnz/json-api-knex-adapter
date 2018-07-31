@@ -1,7 +1,7 @@
 {
-  "name": "json-api-knex-adapter",
-  "version": "0.0.0",
-  "description": "Knex adapter for json-api",
+  "name": "@json-api/knex-adapter",
+  "version": "1.0.0-beta.1",
+  "description": "Knex adapter for the json-api library",
   "main": "build/src/knex-adapter.js",
   "repository": {
     "type": "git",
@@ -10,13 +10,20 @@
   "scripts": {
     "pretest": "knex migrate:latest",
     "test": "NODE_ENV=test mocha --require ts-node/register test/{unit,integration}/**/*.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
-  "author": "Out There Business Solutions",
+  "author": {
+    "name": "Carl Bennett",
+    "email": "carlbennettnz@gmail.com"
+  },
   "license": "MIT",
   "peerDependencies": {
     "json-api": "^3.0.0-rc.4"
   },
+  "files": [
+    "build/**/*"
+  ],
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/knex": "^0.14.9",
