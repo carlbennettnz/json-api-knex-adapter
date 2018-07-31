@@ -11,7 +11,7 @@
     "pretest": "knex migrate:latest",
     "test": "NODE_ENV=test mocha --require ts-node/register test/{unit,integration}/**/*.ts",
     "build": "tsc",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "author": {
     "name": "Carl Bennett",
