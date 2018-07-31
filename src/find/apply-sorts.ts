@@ -13,8 +13,6 @@ export default function applySorts(
 ): void {
   if (sorts == null) return;
 
-  console.log(sorts)
-
   validateSorts(model, sorts);
 
   // Cast to FieldSort[] is checked by validateSorts()
