@@ -270,6 +270,17 @@ describe('integrated find', function() {
       expect(author.id).to.equal('000000000000000000000001');
     });
 
+    it('includes correct type for all local relationships', async function() {
+      const res = await request(app)
+        .get('/posts/000000000000000000000001')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { data: author } = res.body.data.relationships.author;
+
+      expect(author.type).to.equal('authors');
+    });
+
     it('includes all linked relationships', async function() {
       const res = await request(app)
         .get('/awards/000000000000000000000001')
@@ -292,6 +303,17 @@ describe('integrated find', function() {
       expect(runnerUpTags[0].id).to.equal('000000000000000000000002');
     });
 
+    it('includes correct type for all linked relationships', async function () {
+      const res = await request(app)
+        .get('/awards/000000000000000000000001')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { data: winner } = res.body.data.relationships.winner;
+
+      expect(winner.type).to.equal('authors');
+    });
+
     it('includes linked one-to-many relationships', async function() {
       const res = await request(app)
         .get('/posts/000000000000000000000001')
@@ -301,6 +323,17 @@ describe('integrated find', function() {
       const { data: comments } = res.body.data.relationships.comments;
 
       expect(comments).to.have.lengthOf(3);
+    });
+
+    it('includes correct type for all linked one-to-many relationships', async function () {
+      const res = await request(app)
+        .get('/posts/000000000000000000000001')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      const { data: comments } = res.body.data.relationships.comments;
+
+      expect(comments[0].type).to.equal('comments');
     });
   });
 

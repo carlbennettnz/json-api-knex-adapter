@@ -37,8 +37,8 @@ export default function recordToResource(
     if (!fieldAllowed || record[rel.key] == null) continue;
 
     const linkage = rel.relType === RelType.MANY_TO_ONE
-      ? getToOneLinkage(type, record[rel.key])
-      : getToManyLinkage(type, record[rel.key]);
+      ? getToOneLinkage(rel.type, record[rel.key])
+      : getToManyLinkage(rel.type, record[rel.key]);
 
     relationships[rel.key] = Relationship.of({
       data: linkage,
