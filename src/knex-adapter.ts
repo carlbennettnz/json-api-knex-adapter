@@ -30,6 +30,7 @@ import { Models, StrictModels } from './models/model-interface'
 
 // Finds
 import applyRecordFilters, { SUPPORTED_OPERATORS } from './find/apply-record-filters';
+import applyPaginationLimits from './find/apply-pagination-limits';
 import applyFieldFilters from './find/apply-field-filters';
 import getIncludedResources from './find/get-included-resources';
 import joinToManyRelationships from './find/join-to-many-relationships';
@@ -75,6 +76,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     const kq = this.knex.from(model.table);
 
     applyRecordFilters(kq, model, query.getFilters());
+    applyPaginationLimits(kq, query.limit, query.offset);
 
     const includedPromise = getIncludedResources(
       kq,

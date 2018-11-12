@@ -203,6 +203,41 @@ describe('integrated find', function() {
         expect(res.body.data[0].attributes.title).to.equal('Post 1');
       });
     });
+
+    describe('pagination', function() {
+      it('respects limits', async function() {
+        const res = await request(app)
+          .get('/posts?page[limit]=2&sort=id')
+          .accept('application/vnd.api+json')
+          .expect(200);
+        
+        expect(res.body.data).to.have.lengthOf(2);
+        expect(res.body.data[0].id).to.equal('000000000000000000000001');
+        expect(res.body.data[1].id).to.equal('000000000000000000000002');
+      });
+
+      it('respects offsets', async function () {
+        const res = await request(app)
+          .get('/posts?page[limit]=2&page[offset]=2&sort=id')
+          .accept('application/vnd.api+json')
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+        expect(res.body.data[0].id).to.equal('000000000000000000000003');
+        expect(res.body.data[1].id).to.equal('000000000000000000000004');
+      });
+
+      it('does not include related resources to those excluded by a page limit', async function () {
+        const res = await request(app)
+          .get('/posts?page[limit]=1&sort=id&include=author')
+          .accept('application/vnd.api+json')
+          .expect(200);
+
+        expect(res.body.included).to.have.lengthOf(1);
+        expect(res.body.included[0].id).to.equal('000000000000000000000001');
+        expect(res.body.included[0].type).to.equal('authors');
+      });
+    });
   });
 
   describe('single resources', function() {
@@ -346,10 +381,12 @@ describe('integrated find', function() {
         .expect(200);
 
       expect(res.body.data).to.have.lengthOf(4);
-      expect(res.body.included).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(2);
 
       expect(res.body.included[0].type).to.equal('authors');
       expect(res.body.included[0].id).to.equal('000000000000000000000001');
+      expect(res.body.included[1].type).to.equal('authors');
+      expect(res.body.included[1].id).to.equal('000000000000000000000002');
     });
 
     it('populates linked relationships', async function() {
@@ -375,7 +412,7 @@ describe('integrated find', function() {
         .expect(200);
 
       expect(res.body.data).to.have.lengthOf(4);
-      expect(res.body.included).to.have.lengthOf(3);
+      expect(res.body.included).to.have.lengthOf(4);
 
       for (const inc of res.body.included) {
         expect(['tags', 'authors'].includes(inc.type)).to.be.ok;
