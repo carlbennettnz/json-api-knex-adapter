@@ -370,6 +370,20 @@ describe('integrated find', function() {
 
       expect(comments[0].type).to.equal('comments');
     });
+
+    it('gives 404 if the resource is missing', async function() {
+      try {
+        const res = await request(app)
+          .get('/posts/not-found')
+          .accept('application/vnd.api+json');
+      } catch (err) {
+        expect(err.response.status).to.equal(404);
+        expect(err.response.body.errors[0].title).to.equal('One or more of the targeted resources could not be found.');
+        return;
+      }
+
+      throw new Error('Expected request to fail');
+    })
   });
 
   describe('includes', function() {

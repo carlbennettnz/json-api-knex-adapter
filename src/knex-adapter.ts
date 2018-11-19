@@ -109,6 +109,10 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       record => recordToResource(record, query.type, model, selectedFields)
     );
 
+    if (query.isSingular && !resources[0]) {
+      throw Errors.genericNotFound()
+    }
+
     const primary = query.isSingular
       ? Data.pure<ReturnedResource>(resources[0])
       : Data.of<ReturnedResource>(resources);
