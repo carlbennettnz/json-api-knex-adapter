@@ -237,6 +237,36 @@ describe('integrated find', function() {
         expect(res.body.included[0].id).to.equal('000000000000000000000001');
         expect(res.body.included[0].type).to.equal('authors');
       });
+
+      it('returns the collection size when a limit is applied', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query('page[limit]=1')
+          .accept('application/vnd.api+json')
+          .expect(200);
+
+        expect(res.body.meta.total).to.equal(4)
+      });
+
+      it('does not return the collection size when a limit is not applied', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .accept('application/vnd.api+json')
+          .expect(200);
+
+        expect(res.body.meta && res.body.meta.total).to.not.exist
+      });
+
+      it('adjusts the collection size if a filter is applied', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query('page[limit]=1')
+          .query('filter=(title,`Post 1`)')
+          .accept('application/vnd.api+json')
+          .expect(200);
+
+        expect(res.body.meta.total).to.equal(1)
+      });
     });
   });
 
@@ -281,6 +311,20 @@ describe('integrated find', function() {
 
       expect(res.body.data.id).to.equal('000000000000000000000001');
     });
+
+    it('rejects pagination', async function() {
+      try {
+        await request(app)
+          .get('/posts/000000000000000000000001')
+          .query('page[limit]=1')
+          .accept('application/vnd.api+json');
+      } catch (err) {
+        expect(err.status).to.equal(400);
+        return;
+      }
+
+      throw new Error('Expected request to fail');
+    })
 
     it('includes all attributes', async function() {
       const res = await request(app)

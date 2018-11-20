@@ -31,6 +31,7 @@ import { Models, StrictModels } from './models/model-interface'
 // Finds
 import applyRecordFilters, { SUPPORTED_OPERATORS } from './find/apply-record-filters';
 import applyPaginationLimits from './find/apply-pagination-limits';
+import getCollectionSize from './find/get-collection-size';
 import applyFieldFilters from './find/apply-field-filters';
 import getIncludedResources from './find/get-included-resources';
 import joinToManyRelationships from './find/join-to-many-relationships';
@@ -76,6 +77,8 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     const kq = this.knex.from(model.table);
 
     applyRecordFilters(kq, model, query.getFilters());
+
+    const collectionSizePromise = query.limit ? getCollectionSize(kq.clone()) : undefined;
     applyPaginationLimits(kq, query.limit, query.offset);
 
     const includedPromise = getIncludedResources(
@@ -93,12 +96,13 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     let records: any[];
     let included: ReturnedResource[];
+    let collectionSize: number | undefined;
 
     debug('executing query:');
     debug(formatQuery(kq));
 
     try {
-      [ records, included ] = await Promise.all([ kq, includedPromise ]);
+      [ records, included, collectionSize ] = await Promise.all([ kq, includedPromise, collectionSizePromise ]);
     } catch (err) {
       handleQueryError(err);
       throw err; // unreachable
@@ -117,7 +121,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       ? Data.pure<ReturnedResource>(resources[0])
       : Data.of<ReturnedResource>(resources);
 
-    return { primary, included, collectionSize: undefined };
+    return { primary, included, collectionSize };
   }
 
   async create(query: CreateQuery): Promise<CreationReturning> {
