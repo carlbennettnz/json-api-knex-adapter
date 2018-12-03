@@ -49,8 +49,10 @@ describe('integrated delete', function() {
         expect(err.response.body.errors[0].detail)
           .to.equal('Cannot delete author as it is still referenced in invitation');
         expect(err.response.status).to.equal(409);
-        
+        return;
       }
+      
+      throw new Error('Expected request to fail');
     });
   });
 
