@@ -1,6 +1,6 @@
 {
   "name": "@json-api/knex-adapter",
-  "version": "1.0.0-beta.6",
+  "version": "1.0.0-beta.7",
   "description": "Knex adapter for the json-api library",
   "main": "build/src/knex-adapter.js",
   "repository": {
