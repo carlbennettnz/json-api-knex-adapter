@@ -49,7 +49,7 @@ import getAfterUpdateFindQuery from './update/get-after-update-find-query';
 // Helpers
 import withResourcesOfEachType from './helpers/with-resources-of-each-type';
 import formatQuery from './helpers/format-query';
-import { handleQueryError } from './helpers/errors';
+import { handleQueryError, handleDeleteError } from './helpers/errors';
 import recordToResource from './helpers/record-to-resource';
 import { validateResources, ensureOneToManyRelsAreNotPresent } from './helpers/validation';
 
@@ -183,7 +183,14 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     
     applyRecordFilters(kq, model, query.getFilters())
 
-    const numDeleted = await kq;
+    let numDeleted;
+
+    try {
+      numDeleted = await kq;
+
+    } catch (err) {
+      handleDeleteError(err, model);
+    }
 
     if (query.isSingular && numDeleted === 0) {
       throw Errors.genericNotFound();
