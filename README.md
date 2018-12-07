@@ -2,12 +2,18 @@
 
 Serve resources from your SQL database using [`json-api`](https://github.com/ethanresnick/json-api/tree/v3-evolution-over-rewrite).
 
+## Installation
+
+```
+npm i @json-api/knex-adapter --save
+```
+
 ## How to Use
 
 ```js
 // index.js
 const { ResourceTypeRegistry, ResourceController } = require('jsonapi');
-const KnexAdapter = require('json-api-knex-adapter');
+const KnexAdapter = require('@json-api/knex-adapter');
 const express = require('express');
 const knex = require('knex');
 const models = require('./models');
