@@ -19,11 +19,19 @@ const knex = require('knex');
 const models = require('./models');
 
 const connection = knex(config);
-const dbAdapter = new KnexAdapter(models, connection);
+const dbAdapter = new Adapter(models, connection);
 
-const registry = new ResourceTypeRegistry(resourceTypes, { dbAdapter });
-const resourceController = new ResourceController(registry);
-const handler = resourceController.handle.bind(resourceController);
+const defaults: ResourceTypeDescription = { dbAdapter, urlTemplates };
+const registry = new ResourceTypeRegistry(resourceTypes, defaults);
+const controller = new APIController(registry);
+
+// This library doesn't yet support reflection of model data for documentation, but json-api requires
+// that we provide a DocumentationController regardless. The solution for now is to provide a
+// fake controller with an empty ResourceTypeRegistery.
+const docsController = new DocumentationController(new ResourceTypeRegistry({}), { name: 'My API' });
+
+const Front = new ExpressStrategy(controller, docsController, { host: 'http://localhost:3000' });
+const handler = Front.apiRequest;
 
 const app = express();
 
