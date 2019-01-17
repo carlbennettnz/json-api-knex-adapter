@@ -50,7 +50,9 @@ const OPERATORS = {
   lt: '<',
   gt: '>',
   lte: '<=',
-  gte: '>='
+  gte: '>=',
+  or: 'or',
+  and: 'and'
 };
 
 export const SUPPORTED_OPERATORS = Object.keys(OPERATORS);
