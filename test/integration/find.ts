@@ -179,6 +179,30 @@ describe('integrated find', function() {
         expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
+      it('applies multiple filters using or', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query('filter=(or,(title,eq,`Post 2`),(title,eq,`Post 3`))')
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
+      });
+
+      it('applies multiple filters using and', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query('filter=(and,(author,eq,`000000000000000000000001`),(title,gte,`Post 2`))')
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000003').attributes.title).to.equal('Post 4');
+      });
+
       it('applies ordinal operators to dates', async function() {
         const res = await request(app)
           .get('/posts')
