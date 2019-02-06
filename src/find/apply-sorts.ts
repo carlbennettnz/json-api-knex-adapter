@@ -12,7 +12,6 @@ export default function applySorts(
   primaryType: string,
   sorts: FindQuery['sort']
 ): void {
-
   if (sorts == null) return;
 
   validateSorts(models, primaryType, sorts);
@@ -23,7 +22,13 @@ export default function applySorts(
     if(!getValidKeys(models[primaryType]).includes(field)){
       // must be field of relationship
       relationshipSortFields.push(field); // track relationship sorts for joining
-      query.orderBy(field,direction.toLowerCase());
+      applyRelationshipSort(
+        query,
+        models,
+        primaryType,
+        field,
+        direction.toLowerCase()
+      );
     } else {
       const key = field === 'id' ? models[primaryType].idKey : field;
       query.orderBy(`${models[primaryType].table}.${key}`, direction.toLowerCase());
@@ -52,7 +57,25 @@ function getValidKeys(model : StrictModel){
     ...model.relationships
       .filter(rel => rel.relType === RelType.MANY_TO_ONE)
       .map(rel => rel.key)
-  ]
+  ];
+}
+
+function applyRelationshipSort(
+  query: QueryBuilder,
+  models: StrictModels,
+  primaryType: string,
+  field: string,
+  direction: string
+) {
+  const relationshipKey = field.substring(0, field.indexOf("."));
+  const relationshipAttribute = field.substring(field.indexOf(".") + 1);
+  const relationshipType = getRelationshipTypeFromKey(
+    models[primaryType],
+    relationshipKey
+  );
+  const relationshipTable = `${models[relationshipType].table}`;
+  query.groupBy(`${relationshipTable}.${relationshipAttribute}`);
+  query.orderBy(`${relationshipTable}.${relationshipAttribute}`);
 }
 
 function joinRequiredRelationshipsForSorts(
@@ -69,11 +92,7 @@ function joinRequiredRelationshipsForSorts(
     const localFK = `${models[primaryType].table}.${relationshipKey}`;
     const foreignPK = `${models[relationshipType].table}.${models[relationshipType].idKey}`;
     query.leftJoin(relationshipTable, localFK, foreignPK);
-  })
-  // group by sorted relationship fields
-  sortFields.forEach(field => {
-    query.groupBy(field);
-  })
+  });
 }
 
 /**
