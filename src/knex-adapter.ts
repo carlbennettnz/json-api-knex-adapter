@@ -93,7 +93,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     applyFieldFilters(kq, model, selectedFields);
     selectToManyRelationships(kq, model, selectedFields);
-    applySorts(kq, model, query.sort);
+    applySorts(kq, this.models, query.type, query.sort);
 
     let records: any[];
     let included: ReturnedResource[];

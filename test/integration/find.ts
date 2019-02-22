@@ -58,6 +58,19 @@ describe('integrated find', function() {
       expect(res.body.data[3].id).to.equal('000000000000000000000001');
     });
 
+    it('applies sort based on relationship attribute', async function () {
+      const res = await request(app)
+        .get('/posts?sort=author.name,id')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data[0].id).to.equal('000000000000000000000004');
+      expect(res.body.data[1].id).to.equal('000000000000000000000001');
+      expect(res.body.data[2].id).to.equal('000000000000000000000002');
+      expect(res.body.data[3].id).to.equal('000000000000000000000003');
+      
+    });
+
     it.skip('populates relationships with include', async function() {
       const res = await request(app)
         .get('/posts')
