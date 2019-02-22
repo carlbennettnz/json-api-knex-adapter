@@ -192,6 +192,30 @@ describe('integrated find', function() {
         expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
       });
 
+      it('applies multiple filters using or', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query('filter=(or,(title,eq,`Post 2`),(title,eq,`Post 3`))')
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000004').attributes.title).to.equal('Post 3');
+      });
+
+      it('applies multiple filters using and', async function() {
+        const res = await request(app)
+          .get('/posts')
+          .query('filter=(and,(author,eq,`000000000000000000000001`),(title,gte,`Post 2`))')
+          .expect(200);
+
+        expect(res.body.data).to.have.lengthOf(2);
+
+        expect(res.body.data.find(r => r.id === '000000000000000000000002').attributes.title).to.equal('Post 2');
+        expect(res.body.data.find(r => r.id === '000000000000000000000003').attributes.title).to.equal('Post 4');
+      });
+
       it('applies ordinal operators to dates', async function() {
         const res = await request(app)
           .get('/posts')
@@ -223,7 +247,7 @@ describe('integrated find', function() {
           .get('/posts?page[limit]=2&sort=id')
           .accept('application/vnd.api+json')
           .expect(200);
-        
+
         expect(res.body.data).to.have.lengthOf(2);
         expect(res.body.data[0].id).to.equal('000000000000000000000001');
         expect(res.body.data[1].id).to.equal('000000000000000000000002');
@@ -521,6 +545,34 @@ describe('integrated find', function() {
 
       expect(res.body.data).to.have.lengthOf(1);
       expect(res.body.included).to.have.lengthOf(4);
+    });
+
+    it('works with filters on attributes', async () => {
+      const res = await request(app)
+        .get('/posts')
+        .query('include=author&filter=(title,`Post 1`)')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(1);
+
+      expect(res.body.included[0].type).to.equal('authors');
+      expect(res.body.included[0].id).to.equal('000000000000000000000001');
+    });
+
+    it('works with filters on direct relationships', async () => {
+      const res = await request(app)
+        .get('/posts')
+        .query('include=author&filter=(tags,`000000000000000000000001`)')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(1);
+
+      expect(res.body.included[0].type).to.equal('authors');
+      expect(res.body.included[0].id).to.equal('000000000000000000000001');
     });
   });
 });

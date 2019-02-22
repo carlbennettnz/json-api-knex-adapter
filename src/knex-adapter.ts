@@ -34,7 +34,7 @@ import applyPaginationLimits from './find/apply-pagination-limits';
 import getCollectionSize from './find/get-collection-size';
 import applyFieldFilters from './find/apply-field-filters';
 import getIncludedResources from './find/get-included-resources';
-import joinToManyRelationships from './find/join-to-many-relationships';
+import { joinToManyRelationships, selectToManyRelationships } from './find/join-to-many-relationships';
 import applySorts from './find/apply-sorts';
 
 // Creates
@@ -75,11 +75,14 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
   async find(query: FindQuery): Promise<FindReturning> {
     const model = this.models[query.type];
     const kq = this.knex.from(model.table);
+    const selectedFields = (query.select && query.select[query.type]) || [];
 
     applyRecordFilters(kq, model, query.getFilters());
 
     const collectionSizePromise = query.limit ? getCollectionSize(kq.clone()) : undefined;
     applyPaginationLimits(kq, query.limit, query.offset);
+
+    joinToManyRelationships(kq, model, selectedFields);
 
     const includedPromise = getIncludedResources(
       kq,
@@ -88,10 +91,8 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
       query.type
     );
 
-    const selectedFields = (query.select && query.select[query.type]) || [];
-
     applyFieldFilters(kq, model, selectedFields);
-    joinToManyRelationships(kq, model, selectedFields);
+    selectToManyRelationships(kq, model, selectedFields);
     applySorts(kq, this.models, query.type, query.sort);
 
     let records: any[];
