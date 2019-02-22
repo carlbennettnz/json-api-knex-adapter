@@ -71,7 +71,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     this.models = normalizeModels(models);
     this.knex = knex;
   }
-  
+
   async find(query: FindQuery): Promise<FindReturning> {
     const model = this.models[query.type];
     const kq = this.knex.from(model.table);
@@ -92,7 +92,6 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     applyFieldFilters(kq, model, selectedFields);
     joinToManyRelationships(kq, model, selectedFields);
-
     applySorts(kq, this.models, query.type, query.sort);
 
     let records: any[];
@@ -148,7 +147,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
     const created = query.records.isSingular
       ? Data.pure<ReturnedResource>(results[0])
       : Data.of<ReturnedResource>(results);
-    
+
     return { created };
   }
 
@@ -170,10 +169,10 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     const findQuery = getAfterUpdateFindQuery(query);
     const updated = (await this.find(findQuery)).primary;
-    
+
     return { updated }
   }
-  
+
   async delete(query: DeleteQuery): Promise<DeletionReturning> {
     if (!query.isSimpleIdQuery()) {
       throw new Error('Only simple ID queries are supported');
@@ -181,7 +180,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     const model = this.models[query.type];
     const kq = this.knex(model.table).delete();
-    
+
     applyRecordFilters(kq, model, query.getFilters())
 
     let numDeleted;
@@ -199,23 +198,23 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
 
     return { deleted: undefined }
   }
-  
+
   async addToRelationship(query: AddToRelationshipQuery): Promise<any> {
 
   }
-  
+
   async removeFromRelationship(query: RemoveFromRelationshipQuery): Promise<any> {
 
   }
-  
+
   getModel(typeName: string): any {
 
   }
-  
+
   getRelationshipNames(typeName: string): string[] {
     return []
   }
-  
+
   async getTypePaths(items: {type: string, id: string}[]): Promise<TypeIdMapOf<TypeInfo>> {
     const itemsByType: any = _.groupBy(items, 'type')
     const result: TypeIdMapOf<TypeInfo> = {}
@@ -229,7 +228,7 @@ export default class KnexAdapter implements Adapter<typeof KnexAdapter> {
         }
       }
     }
-    
+
     return result
   }
 

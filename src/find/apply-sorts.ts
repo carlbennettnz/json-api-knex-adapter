@@ -1,5 +1,5 @@
 import { QueryBuilder } from "knex";
-import { StrictModels, RelType, StrictModel } from "../models/model-interface";
+import { StrictModels, RelType, StrictModel, StrictRelationship } from "../models/model-interface";
 import { Error as APIError, FindQuery, Sort, FieldSort } from "json-api";
 
 /**
@@ -16,83 +16,20 @@ export default function applySorts(
 
   validateSorts(models, primaryType, sorts);
 
-  // Cast to FieldSort[] is checked by validateSorts()
-  const relationshipSortFields = [] as string[];
-  for (const { field, direction } of sorts as FieldSort[]) {
-    if(!getValidKeys(models[primaryType]).includes(field)){
-      // must be field of relationship
-      relationshipSortFields.push(field); // track relationship sorts for joining
-      applyRelationshipSort(
-        query,
-        models,
-        primaryType,
-        field,
-        direction.toLowerCase()
-      );
+  const fieldSorts = sorts as FieldSort[]
+  const primaryModel = models[primaryType]
+  const relsToJoin: StrictRelationship[] = []
+
+  for (const sort of fieldSorts) {
+    if (isDeepSort(primaryModel, sort.field)) {
+      const rel = applyDeepSort(query, models, primaryType, sort);
+      relsToJoin.push(rel);
     } else {
-      const key = field === 'id' ? models[primaryType].idKey : field;
-      query.orderBy(`${models[primaryType].table}.${key}`, direction.toLowerCase());
-    };
-    
+      applyShallowSort(query, sort, primaryModel);
+    }
   }
-  joinRequiredRelationshipsForSorts (query, models, primaryType, relationshipSortFields)
-};
 
-function getRelationshipTypeFromKey(model : StrictModel, key: string){
-  const relationship = model.relationships.find( relationship => relationship.key === key);
-   if(!relationship){
-    throw new APIError({
-      status: 400,
-      title: 'Invalid sort',
-      detail: `The relationship '${key}' does not exist on this model.'`
-    });
-  }
-  return relationship.type
-}
-
-function getValidKeys(model : StrictModel){
-  return [
-    'id',
-    ...model.attrs.map(attr => attr.key),
-    ...model.relationships
-      .filter(rel => rel.relType === RelType.MANY_TO_ONE)
-      .map(rel => rel.key)
-  ];
-}
-
-function applyRelationshipSort(
-  query: QueryBuilder,
-  models: StrictModels,
-  primaryType: string,
-  field: string,
-  direction: string
-) {
-  const relationshipKey = field.substring(0, field.indexOf("."));
-  const relationshipAttribute = field.substring(field.indexOf(".") + 1);
-  const relationshipType = getRelationshipTypeFromKey(
-    models[primaryType],
-    relationshipKey
-  );
-  const relationshipTable = `${models[relationshipType].table}`;
-  query.groupBy(`${relationshipTable}.${relationshipAttribute}`);
-  query.orderBy(`${relationshipTable}.${relationshipAttribute}`);
-}
-
-function joinRequiredRelationshipsForSorts(
-  query: QueryBuilder,
-  models: StrictModels,
-  primaryType: string,
-  sortFields: string[]
-){  
-  // join relationships that are referenced by sorts
-  const relationshipKeys = [...new Set(sortFields.map(field => field.substring(0,field.indexOf('.'))))]
-  relationshipKeys.forEach( relationshipKey => {
-    const relationshipType = getRelationshipTypeFromKey(models[primaryType], relationshipKey);
-    const relationshipTable = `${models[relationshipType].table}`;
-    const localFK = `${models[primaryType].table}.${relationshipKey}`;
-    const foreignPK = `${models[relationshipType].table}.${models[relationshipType].idKey}`;
-    query.leftJoin(relationshipTable, localFK, foreignPK);
-  });
+  joinToManyRels(query, models, primaryType, relsToJoin);
 }
 
 /**
@@ -104,34 +41,31 @@ function validateSorts(
   primaryType: string,
   sorts: Sort[]
 ): void {
-  const validKeys = getValidKeys(models[primaryType]);
-  const invalidSorts = sorts.filter( sort => {
-    
-    if(!('field' in sort)){
-      return true;
-    } else if(!validKeys.includes(sort.field)){
-      
-      // not direct field match, check for relationship match
-      const relationshipKey = sort.field.substring(0,sort.field.indexOf('.'));
-      const relationshipField = sort.field.substring(sort.field.indexOf('.')+1);
-      // check if valid keys contains relationship name, 
-      if (!validKeys.includes(relationshipKey)){
-        return true
-      }
-      
-      // validate relationship field
-      const relationshipType = getRelationshipTypeFromKey(models[primaryType], relationshipKey);
-      let validRelationshipKeys;
-      if(relationshipType){
-        validRelationshipKeys = getValidKeys(models[relationshipType]);
-      }
-      
-      return !validRelationshipKeys.includes(relationshipField)
-    } else {
-      return false;
+  const validKeys = getAttrsAndToOneRelKeys(models[primaryType]);
+
+  const invalidSorts = sorts.filter(sort => {
+    if (!('field' in sort)) return true;
+
+    const [ parentKey, ...childKeys ] = sort.field.split('.')
+
+    if (!validKeys.includes(parentKey)) return true;
+    if (childKeys.length === 0) return false;
+
+    if (childKeys.length > 1) {
+      throw new APIError({
+        status: 501,
+        title: 'Unsupported sort',
+        detail: 'Sorts on properties more than one level removed from the primary resource are not supported.'
+      })
     }
+
+    const childKey: string = childKeys[0]
+    const relationshipType = getRelationship(models[primaryType], parentKey).type;
+    const validRelationshipKeys = getAttrsAndToOneRelKeys(models[relationshipType]);
+
+    return !validRelationshipKeys.includes(childKey)
   });
-  
+
   if (invalidSorts.length > 0) {
     throw invalidSorts.map(sort => new APIError({
       status: 400,
@@ -139,5 +73,59 @@ function validateSorts(
       detail: `The attribute '${'field' in sort ? sort.field : JSON.stringify(sort)}'`
         + `does not exist as an attribute or relationship on this model.'`
     }));
+  }
+}
+
+function isDeepSort(model: StrictModel, key: string) {
+  return !getAttrsAndToOneRelKeys(model).includes(key)
+}
+
+function getAttrsAndToOneRelKeys(model: StrictModel){
+  return [
+    'id',
+    ...model.attrs.map(attr => attr.key),
+    ...model.relationships
+      .filter(rel => rel.relType === RelType.MANY_TO_ONE)
+      .map(rel => rel.key)
+  ];
+}
+
+function applyShallowSort(query: QueryBuilder, { field, direction }: FieldSort, model: StrictModel) {
+  const key = field === 'id' ? model.idKey : field;
+  query.orderBy(`${model.table}.${key}`, direction.toLowerCase());
+}
+
+function applyDeepSort(
+  query: QueryBuilder,
+  models: StrictModels,
+  primaryType: string,
+  { field, direction }: FieldSort
+): StrictRelationship {
+  const [ parentKey, childKey ] = field.split('.');
+  const rel = getRelationship(models[primaryType], parentKey);
+  const childCol = `${models[rel.type].table}.${childKey}`;
+
+  query.groupBy(childCol);
+  query.orderBy(childCol, direction.toLowerCase());
+
+  return rel
+}
+
+function getRelationship(model: StrictModel, key: string) {
+  return model.relationships.find(relationship => relationship.key === key)!;
+}
+
+function joinToManyRels(
+  query: QueryBuilder,
+  models: StrictModels,
+  primaryType: string,
+  rels: StrictRelationship[]
+) {
+  for (const rel of rels) {
+    const relationshipTable = `${models[rel.type].table}`;
+    const localFK = `${models[primaryType].table}.${rel.key}`;
+    const foreignPK = `${models[rel.type].table}.${models[rel.type].idKey}`;
+
+    query.leftJoin(relationshipTable, localFK, foreignPK);
   }
 }
