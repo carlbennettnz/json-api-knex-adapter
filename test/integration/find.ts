@@ -234,7 +234,7 @@ describe('integrated find', function() {
           .get('/posts?page[limit]=2&sort=id')
           .accept('application/vnd.api+json')
           .expect(200);
-        
+
         expect(res.body.data).to.have.lengthOf(2);
         expect(res.body.data[0].id).to.equal('000000000000000000000001');
         expect(res.body.data[1].id).to.equal('000000000000000000000002');
@@ -532,6 +532,34 @@ describe('integrated find', function() {
 
       expect(res.body.data).to.have.lengthOf(1);
       expect(res.body.included).to.have.lengthOf(4);
+    });
+
+    it('works with filters on attributes', async () => {
+      const res = await request(app)
+        .get('/posts')
+        .query('include=author&filter=(title,`Post 1`)')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(1);
+
+      expect(res.body.included[0].type).to.equal('authors');
+      expect(res.body.included[0].id).to.equal('000000000000000000000001');
+    });
+
+    it('works with filters on direct relationships', async () => {
+      const res = await request(app)
+        .get('/posts')
+        .query('include=author&filter=(tags,`000000000000000000000001`)')
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.data).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(1);
+
+      expect(res.body.included[0].type).to.equal('authors');
+      expect(res.body.included[0].id).to.equal('000000000000000000000001');
     });
   });
 });

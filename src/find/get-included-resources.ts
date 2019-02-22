@@ -82,18 +82,18 @@ export default async function getIncludedResources(
     } = groupBy(relsByType[type], rel => rel.via == null ? 'direct' : 'linked');
 
     const subqueries = [
-      ...direct.map(rel => query.clone().distinct(rel.key)),
-      ...linked.map(rel => getSubqueryForLinkedRel(query, primaryModel, rel))
+      ...direct.map(rel => getSubqueryForDirectRel(query, primaryModel, rel)),
+      ...linked.map(rel => getSubqueryForLinkedRel(query, rel))
     ];
 
     const includeQuery = getQueryForType(query, models[type], subqueries);
-    
+
     debug('executing query for included resources:');
     debug(formatQuery(includeQuery));
-    
+
     queries.push(Promise.resolve(includeQuery).then(result => [ type, result ]));
   }
-  
+
   const resources = await Promise.all(queries).then(results => {
     // Concat all results into a single array of resources
     return results.reduce((prev, [ type, result ]) =>
@@ -128,6 +128,18 @@ function validatePaths(paths: string[], rels: StrictRelationship[]) {
 }
 
 /**
+ * Gets a query returning a single column of ids at the other end of a direct relationship. Ensures column reference is table-qualified to
+ * avoid name clashes with fields joined for the WHERE clause.
+ *
+ * @param query
+ * @param model
+ * @param rel
+ */
+function getSubqueryForDirectRel(query, model, rel) {
+  return query.clone().distinct(`${model.table}.${rel.key}`)
+}
+
+/**
  * Gets a query returning a single column of ids at the other end of a linked relationship. If we're including a set of posts' authors, the
  * final query will end up looking something like this:
  *
@@ -147,14 +159,11 @@ function validatePaths(paths: string[], rels: StrictRelationship[]) {
  * @param  {Object}       rel   Relationship to load.
  * @return {QueryBuilder}       Knex query returning the ids of the related resources.
  */
-function getSubqueryForLinkedRel(query, model, rel) {
+function getSubqueryForLinkedRel(query, rel) {
   const foreignPK = `"${rel.via.table}"."${rel.via.pk}"`;
-  const localPK = `${model.table}.${model.idKey}`;
-  const foreignFK = `${rel.via.table}.${rel.via.fk}`;
 
   return query.clone()
     .distinct(getKnexFromQuery(query).raw(`${foreignPK} as "${rel.key}"`))
-    .leftJoin(rel.via.table, localPK, foreignFK);
 }
 
 /**
