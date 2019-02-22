@@ -9,7 +9,7 @@
   },
   "scripts": {
     "pretest": "knex migrate:latest",
-    "test": "NODE_ENV=test mocha --require ts-node/register test/{unit,integration}/**/*.ts",
+    "test": "NODE_ENV=test mocha --require ts-node/register 'test/integration/**/*.ts'",
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
