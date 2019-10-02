@@ -21,12 +21,7 @@ export interface Model {
     table: string,
     idKey?: string,
     attrs?: (string | Attr)[],
-    relationships?: Relationship[],
-    transforms?: {
-        beforeRender?: (resource: Resource) => Resource | undefined,
-        beforeSave?: (resource: Resource) => Resource | undefined,
-        beforeDelete?: (resource: Resource) => Resource | undefined,
-    }
+    relationships?: Relationship[]
 }
 
 export interface Models {
