@@ -1,5 +1,3 @@
-import { Resource } from "json-api";
-
 export interface Attr {
     key: string,
     serialize?: (value: any) => any,

@@ -12,56 +12,55 @@ import {
 export default function normalizeModels(models: Models): StrictModels {
     const normalizedModels: StrictModels = {};
     const modelTables = Object.values(models).map(model => model.table);
-  
+
     for (const type in models) {
       const model = models[type];
-  
+
       const normalizedModel: StrictModel = {
         table: model.table,
         idKey: normalizeIdKey(model.idKey),
         attrs: normalizeAttrs(model.attrs),
-        relationships: normalizeRelationships(model.relationships, modelTables),
-        transforms: model.transforms
+        relationships: normalizeRelationships(model.relationships, modelTables)
       };
-  
+
       normalizedModels[type] = normalizedModel;
     }
-  
+
     return normalizedModels;
   }
-  
+
   function normalizeIdKey(idKey) {
     return idKey == null ? 'id' : idKey;
   }
-  
+
   function normalizeAttrs(attrs: (string | Attr)[] = []): StrictAttr[] {
     const normalizedAttrs: StrictAttr[] = [];
-  
+
     for (let attr of attrs) {
       if (typeof attr === 'string') {
         attr = { key: attr };
       }
-  
+
       const normalizedAttr: StrictAttr = {
         key: attr.key,
         serialize: nullSerialize,
         deserialize: nullDeserialize
       };
-  
+
       if (attr.serialize) {
         normalizedAttr.serialize = attr.serialize;
       }
-  
+
       if (attr.deserialize) {
         normalizedAttr.deserialize = attr.deserialize;
       }
-  
+
       normalizedAttrs.push(normalizedAttr);
     }
-  
+
     return normalizedAttrs;
   }
-  
+
   /**
    * Ensures models match the required format, and also attempts to automatically determine each
    * relationship's relType. If a relType is provided, we just use that. Otherwise, if
@@ -79,19 +78,19 @@ export default function normalizeModels(models: Models): StrictModels {
     modelTables: string[]
   ): StrictRelationship[] {
     const normalizedRels: StrictRelationship[] = [];
-  
+
     for (const rel of rels || []) {
       const normalizedRel: StrictRelationship = {
         key: rel.key,
         type: rel.type,
         relType: RelType.MANY_TO_ONE
       };
-  
+
       // Clone the via object
       if (rel.via) {
         normalizedRel.via = { ...rel.via };
       }
-  
+
       // Set the relType
       if (rel.relType) {
         normalizedRel.relType = rel.relType;
@@ -100,18 +99,17 @@ export default function normalizeModels(models: Models): StrictModels {
       } else if (rel.via) {
         normalizedRel.relType = RelType.MANY_TO_MANY;
       }
-  
+
       normalizedRels.push(normalizedRel);
     }
-  
+
     return normalizedRels;
   }
-  
+
   function nullSerialize(val: any): any {
     return val;
   }
-  
+
   function nullDeserialize(val: any): any {
     return val;
   }
-  
