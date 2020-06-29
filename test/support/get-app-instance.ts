@@ -32,7 +32,7 @@ const models = {
     idKey: '_id',
     attrs: [ 'name' ],
     relationships: [
-      { type: 'posts', key: 'posts', via: { table: 'posts', pk: '_id', fk: 'author' } }
+      { type: 'posts', key: 'posts', via: { table: 'post', pk: '_id', fk: 'author' } }
     ]
   },
 

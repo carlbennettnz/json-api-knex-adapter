@@ -68,7 +68,7 @@ describe('integrated find', function() {
       expect(res.body.data[1].id).to.equal('000000000000000000000001');
       expect(res.body.data[2].id).to.equal('000000000000000000000002');
       expect(res.body.data[3].id).to.equal('000000000000000000000003');
-      
+
     });
 
     it.skip('populates relationships with include', async function() {
@@ -546,6 +546,30 @@ describe('integrated find', function() {
       expect(res.body.data).to.have.lengthOf(1);
       expect(res.body.included).to.have.lengthOf(4);
     });
+
+    it('populates direct relationships on an included resource', async function() {
+      const res = await request(app)
+        .get('/posts')
+        .query({ include: 'comments' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      res.body.included.forEach(includedResource => {
+        expect(includedResource.type).to.equal('comments')
+        expect(includedResource.relationships.post.data.type).to.equal('posts')
+      })
+    })
+
+    it('populates linked relationships on an included resource', async function() {
+      const res = await request(app)
+        .get('/awards')
+        .query({ include: 'winner' })
+        .accept('application/vnd.api+json')
+        .expect(200);
+
+      expect(res.body.included).to.have.lengthOf(1)
+      expect(res.body.included[0].relationships.posts.data).to.have.lengthOf(3)
+    })
 
     it('works with filters on attributes', async () => {
       const res = await request(app)
