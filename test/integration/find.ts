@@ -71,7 +71,7 @@ describe('integrated find', function() {
 
     });
 
-    it.skip('populates relationships with include', async function() {
+    it('populates relationships with include', async function() {
       const res = await request(app)
         .get('/posts')
         .query({ include: 'author' })
@@ -79,9 +79,9 @@ describe('integrated find', function() {
         .expect(200);
 
       expect(res.body.data).to.have.lengthOf(4);
-      expect(res.body.included).to.have.lengthOf(1);
+      expect(res.body.included).to.have.lengthOf(2);
 
-      expect(res.body.included[0].attributes.id).to.equal('000000000000000000000001');
+      expect(res.body.included[0].id).to.equal('000000000000000000000001');
     });
 
     describe('filters', function() {
