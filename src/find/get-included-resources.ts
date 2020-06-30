@@ -9,6 +9,7 @@ import formatQuery from '../helpers/format-query';
 import recordToResource from '../helpers/record-to-resource';
 import { StrictModels, StrictRelationship, StrictModel } from '../models/model-interface';
 import { ReturnedResource } from 'json-api/build/src/db-adapters/AdapterInterface';
+import { joinToManyRelationships, selectToManyRelationships } from './join-to-many-relationships';
 
 const debug = debugFactory('resapi:pg')
 
@@ -87,6 +88,9 @@ export default async function getIncludedResources(
     ];
 
     const includeQuery = getQueryForType(query, models[type], subqueries);
+
+    joinToManyRelationships(includeQuery, models[type], [])
+    selectToManyRelationships(includeQuery, models[type], [])
 
     debug('executing query for included resources:');
     debug(formatQuery(includeQuery));
@@ -182,10 +186,10 @@ function getQueryForType(
   { table, idKey }: StrictModel,
   subqueries: QueryBuilder[]
 ): QueryBuilder {
-  let includeQuery = getKnexFromQuery(query)(table);
+  let includeQuery = getKnexFromQuery(query).select(`${table}.*`).from(table);
 
   for (const subquery of subqueries) {
-    includeQuery = includeQuery.orWhereIn(idKey, subquery);
+    includeQuery = includeQuery.orWhereIn(`${table}.${idKey}`, subquery);
   }
 
   return includeQuery;
